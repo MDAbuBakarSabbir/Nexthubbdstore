@@ -247,9 +247,6 @@
                                     </div>
                                 </div>
                             </div>
-                            @php
-                                use App\Models\Product;
-                            @endphp
 
                             @if (!$value->prosizes->isEmpty() || !$value->procolors->isEmpty())
                                 <div class="pro_btn">
