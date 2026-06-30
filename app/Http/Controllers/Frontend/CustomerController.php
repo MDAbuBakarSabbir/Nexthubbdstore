@@ -18,6 +18,7 @@ use App\Models\Review;
 use App\Models\PaymentGateway;
 use App\Models\SmsGateway;
 use App\Models\GeneralSetting;
+use App\Models\IncompleteOrder;
 use Session;
 use Hash;
 use Auth;
@@ -257,6 +258,24 @@ class CustomerController extends Controller
         Session::put('shipping',$select_charge->amount);
        return view('frontEnd.layouts.customer.checkout',compact('shippingcharge', 'bkash_gateway', 'shurjopay_gateway'));
     }
+    
+    public function incomplete_order_save(Request $request){
+        $session_id = Session::getId();
+        
+        $incompleteOrder = IncompleteOrder::updateOrCreate(
+            ['session_id' => $session_id],
+            [
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'cart_details' => json_encode(Cart::instance('shopping')->content()),
+                'status' => 'incomplete'
+            ]
+        );
+        
+        return response()->json(['success' => true, 'message' => 'Saved']);
+    }
+
     public function order_save(Request $request){
         $this->validate($request,[
             'name'=>'required',
@@ -299,6 +318,7 @@ class CustomerController extends Controller
 
          // order data save
         $order                   = new Order();
+        
         $order->invoice_id       = rand(11111,99999);
         $order->amount           = ($subtotal + $shippingfee) - $discount;
         $order->discount         = $discount ? $discount : 0;
@@ -342,6 +362,11 @@ class CustomerController extends Controller
         }
        
         Cart::instance('shopping')->destroy();
+        Session::forget('shipping');
+        Session::forget('discount');
+        Session::forget('step');
+        
+        IncompleteOrder::where('session_id', Session::getId())->orWhere('phone', $request->phone)->delete();
         
         Toastr::success('Thanks, Your order place successfully', 'Success!');
         $site_setting = GeneralSetting::where('status', 1)->first();

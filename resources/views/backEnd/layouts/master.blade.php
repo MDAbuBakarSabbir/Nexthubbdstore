@@ -183,6 +183,9 @@
             </li>
 
             <li class="dropdown d-none d-xl-block">
+              <a class="nav-link dropdown-toggle waves-effect waves-light ajax-clear-cache" href="{{route('admin.cache.clear')}}"> <i data-feather="refresh-cw"></i> Clear Cache </a>
+            </li>
+            <li class="dropdown d-none d-xl-block">
               <a class="nav-link dropdown-toggle waves-effect waves-light" href="{{route('home')}}" target="_blank"> <i data-feather="globe"></i> Visit Site </a>
             </li>
           </ul>
@@ -261,6 +264,9 @@
                       <a href="{{route('admin.orders',['slug'=>$value->slug])}}"><i data-feather="file-plus"></i>{{$value->name}}</a>
                     </li>
                     @endforeach
+                    <li>
+                      <a href="{{route('admin.incomplete_orders')}}"><i data-feather="file-plus"></i> Incomplete Orders</a>
+                    </li>
                   </ul>
                 </div>
               </li>
@@ -756,6 +762,34 @@
                     });
                 } else {
                     $(".pathaoarea").empty();
+                }
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        $(document).on('click', '.ajax-clear-cache', function(e) {
+            e.preventDefault();
+            var url = $(this).attr('href');
+            var $btn = $(this);
+            $btn.css('pointer-events', 'none').css('opacity', '0.6');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(response.message || 'System cache cleared successfully!', 'Success');
+                    } else {
+                        alert(response.message || 'System cache cleared successfully!');
+                    }
+                },
+                error: function() {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Failed to clear system cache.', 'Error');
+                    }
+                },
+                complete: function() {
+                    $btn.css('pointer-events', 'auto').css('opacity', '1');
                 }
             });
         });

@@ -34,6 +34,17 @@ class DashboardController extends Controller
         $monthly_sale = Order::select(DB::raw('DATE(created_at) as date','created_at'))->selectRaw("SUM(amount) as amount")->where(['order_status'=>'5'])->groupBy('date')->limit(30)->get();
         return view('backEnd.admin.dashboard',compact('total_order','today_order','total_product','total_customer','latest_order','latest_customer','today_delivery','total_delivery','last_week','last_month','monthly_sale'));
     }
+    public function cache_clear(Request $request){
+        \Artisan::call('cache:clear');
+        \Artisan::call('view:clear');
+        \Artisan::call('config:clear');
+        \Artisan::call('route:clear');
+        if($request->ajax() || $request->wantsJson()){
+            return response()->json(['status' => 'success', 'message' => 'System cache cleared successfully!']);
+        }
+        Toastr::success('System cache cleared successfully!', 'Success');
+        return redirect()->back();
+    }
     public function changepassword(){
         return view('backEnd.admin.changepassword');
     }

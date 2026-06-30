@@ -36,7 +36,7 @@ class OrderController extends Controller
                     $query->orWhere('invoice_id', 'LIKE', '%' . $request->keyword . '%')
                           ->orWhereHas('shipping', function ($subQuery) use ($request) {
                               $subQuery->where('phone', $request->keyword);
-                          });
+                              });
                 });
             }
            $show_data = $show_data->paginate(10);

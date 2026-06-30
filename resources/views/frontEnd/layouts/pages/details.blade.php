@@ -201,7 +201,6 @@
 
                                                             </div>
                                                         @else
-@elseif ()
                                                         <div class="row p-md-0 p-sm-0">
                                                             <div class="qty-cart col-sm-12">
                                                                 <div class="quantity">

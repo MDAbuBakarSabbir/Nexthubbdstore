@@ -9,6 +9,7 @@ use App\Http\Controllers\Frontend\BkashController;
 use App\Http\Controllers\Frontend\ShurjopayControllers;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\IncompleteOrderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -102,6 +103,7 @@ Route::group(['prefix'=>'customer','namespace'=>'Frontend', 'middleware' => ['ip
     Route::post('/forgot-password/store', [CustomerController::class, 'forgot_store'])->name('customer.forgot.store');
     Route::post('/forgot-password/resendotp', [CustomerController::class, 'forgot_resend'])->name('customer.forgot.resendotp');
     Route::get('/checkout', [CustomerController::class, 'checkout'])->name('customer.checkout');
+    Route::post('/incomplete-order-save', [CustomerController::class, 'incomplete_order_save'])->name('customer.incomplete_order_save');
     Route::post('/order-save', [CustomerController::class, 'order_save'])->name('customer.ordersave');
     Route::get('/order-success/{id}', [CustomerController::class, 'order_success'])->name('customer.order_success');
 
@@ -149,6 +151,7 @@ Route::get('/ajax-product-childcategory', [ProductController::class, 'getChildca
 // auth route
 Route::group(['namespace'=>'Admin','middleware' => ['auth','lock','check_refer'],'prefix'=>'admin'], function() {
     Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('cache-clear', [DashboardController::class, 'cache_clear'])->name('admin.cache.clear');
     Route::get('change-password', [DashboardController::class, 'changepassword'])->name('change_password');
     Route::post('new-password', [DashboardController::class, 'newpassword'])->name('new_password');
 
@@ -383,6 +386,11 @@ Route::group(['namespace'=>'Admin','middleware' => ['auth','lock','check_refer']
     Route::post('page/destroy', [CreatePageController::class,'destroy'])->name('pages.destroy');
 
     // Pos route
+    Route::get('incomplete-orders', [IncompleteOrderController::class,'index'])->name('admin.incomplete_orders');
+    Route::post('incomplete-orders/status-change', [IncompleteOrderController::class,'status_change'])->name('admin.incomplete_orders.status');
+    Route::post('incomplete-orders/destroy', [IncompleteOrderController::class,'destroy'])->name('admin.incomplete_orders.destroy');
+    Route::get('incomplete-orders/bulk-destroy', [IncompleteOrderController::class,'bulk_destroy'])->name('admin.incomplete_orders.bulk_destroy');
+
     Route::get('order/create', [OrderController::class,'order_create'])->name('admin.order.create');
     Route::post('order/store', [OrderController::class,'order_store'])->name('admin.order.store');
     Route::get('order/cart-add', [OrderController::class,'cart_add'])->name('admin.order.cart_add');

@@ -39,10 +39,9 @@
                                     <div class="col-sm-12">
                                         <div class="form-group mb-3">
                                             <label for="phone">আপনার নাম্বার লিখুন *</label>
-                                            <input type="text" minlength="11" id="number" maxlength="11"
+                                            <input type="text" minlength="11" id="phone" maxlength="11"
                                                 pattern="0[0-9]+"
-                                                title="please enter number only and 0 must first character"
-                                                title="Please enter an 11-digit number." id="phone"
+                                                title="Please enter an 11-digit number."
                                                 class="form-control @error('phone') is-invalid @enderror" name="phone"
                                                 value="{{ old('phone') }}"
                                                 required/>
@@ -296,6 +295,49 @@
                 },
             @endforeach]
         }
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        // Setup CSRF token for AJAX
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        var timer = null;
+
+        // Trigger on input, change, and blur
+        $('#name, #phone, #address').on('input change blur', function(event) {
+            if (timer) {
+                clearTimeout(timer);
+            }
+
+            var name = $('#name').val();
+            var phone = $('#phone').val();
+            var address = $('#address').val();
+            
+            // Save if there is any data entered
+            if (name.length > 0 || phone.length > 0 || address.length > 0) {
+                var delay = (event.type === 'blur') ? 0 : 1000;
+                
+                timer = setTimeout(function() {
+                    $.ajax({
+                        url: "{{ route('customer.incomplete_order_save') }}",
+                        type: "POST",
+                        data: {
+                            name: name,
+                            phone: phone,
+                            address: address
+                        },
+                        success: function(response) {
+                            console.log("Incomplete order saved");
+                        }
+                    });
+                }, delay);
+            }
+        });
     });
 </script>
 @endpush
