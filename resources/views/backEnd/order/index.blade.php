@@ -80,7 +80,11 @@
                             <td>{{$value->invoice_id}}</td>
                             <td>{{date('d-m-Y', strtotime($value->updated_at))}}<br> {{date('h:i:s a', strtotime($value->updated_at))}}</td>
                             <td><strong>{{$value->shipping?$value->shipping->name:''}}</strong><p>{{$value->shipping?$value->shipping->address:''}}</p></td>
-                            <td>{{$value->shipping?$value->shipping->phone:''}}</td>
+                            <td>
+                              {{$value->shipping?$value->shipping->phone:''}} <br>
+                              <button class="btn btn-danger">Fraud Check</button>
+
+                            </td>
                             <td>{{$value->user?$value->user->name:''}}</td>
                             <td>৳{{$value->amount}}</td>
                             <td>{{$value->status?$value->status->name:''}}</td>
