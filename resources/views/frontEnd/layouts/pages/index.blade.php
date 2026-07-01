@@ -86,7 +86,7 @@
             </div>
 
             <div class="col-sm-12">
-                <div class="topcategory product_slider owl-carousel">
+                <div class="topcategory category-slider owl-carousel">
                     @foreach ($menucategories as $key => $value)
                         <div class="cat_item">
                             <div class="cat_img">
@@ -373,7 +373,7 @@
             responsiveClass: true,
             responsive: {
                 0: {
-                    items: 3,
+                    items: 2,
                     nav: false,
                 },
                 600: {

@@ -34,8 +34,8 @@
     header#navbar_top {
     position: inherit;
 }
-    .product_sliders {
-    grid-template-columns: repeat(3,1fr);
+    .product_sliders, .category-product {
+    grid-template-columns: repeat(2,1fr) !important;
     grid-gap: 10px;
 }
     .cat_img a {
