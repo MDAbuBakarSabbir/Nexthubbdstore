@@ -1,88 +1,92 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-use Illuminate\Support\Facades\Http;
-use GuzzleHttp\Client;
+
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Category;
+use App\Models\Courierapi;
 use App\Models\Customer;
-use App\Models\District;
-use App\Models\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderDetails;
-use App\Models\Shipping;
-use App\Models\ShippingCharge;
+use App\Models\OrderStatus;
 use App\Models\Payment;
 use App\Models\Product;
-use App\Models\Category;
+use App\Models\Shipping;
+use App\Models\ShippingCharge;
 use App\Models\User;
-use App\Models\Courierapi;
-use Session;
 use Cart;
+use GuzzleHttp\Client;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Session;
 use Toastr;
-use Mail;
 
 class OrderController extends Controller
 {
-    public function index($slug,Request $request){
-        if($slug == 'all'){
+    public function index($slug, Request $request)
+    {
+        if ($slug == 'all') {
             $order_status = (object) [
                 'name' => 'All',
-                'orders_count'=> Order::count(),
+                'orders_count' => Order::count(),
             ];
-            $show_data = Order::latest()->with('shipping','status');
-            if($request->keyword){
+            $show_data = Order::latest()->with('shipping', 'status');
+            if ($request->keyword) {
                 $show_data = $show_data->where(function ($query) use ($request) {
-                    $query->orWhere('invoice_id', 'LIKE', '%' . $request->keyword . '%')
+                    $query->orWhere('invoice_id', 'LIKE', '%'.$request->keyword.'%')
                           ->orWhereHas('shipping', function ($subQuery) use ($request) {
                               $subQuery->where('phone', $request->keyword);
-                              });
+                          });
                 });
             }
-           $show_data = $show_data->paginate(10);
-        }else{
-            $order_status = OrderStatus::where('slug',$slug)->withCount('orders')->first();
-            $show_data = Order::where(['order_status'=>$order_status->id])->latest()->with('shipping','status')->paginate(10);
+            $show_data = $show_data->paginate(10);
+        } else {
+            $order_status = OrderStatus::where('slug', $slug)->withCount('orders')->first();
+            $show_data = Order::where(['order_status' => $order_status->id])->latest()->with('shipping', 'status')->paginate(10);
         }
         $users = User::get();
-        $steadfast = Courierapi::where(['status'=>1, 'type'=>'steadfast'])->first();
-        $pathao_info = Courierapi::where(['status'=>1, 'type'=>'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
+        $steadfast = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
+        $pathao_info = Courierapi::where(['status' => 1, 'type' => 'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
         // pathao courier
-        if($pathao_info) {
-            $response = Http::get($pathao_info->url . '/api/v1/countries/1/city-list');
+        if ($pathao_info) {
+            $response = Http::get($pathao_info->url.'/api/v1/countries/1/city-list');
             $pathaocities = $response->json();
             $response2 = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $pathao_info->token,
+                'Authorization' => 'Bearer '.$pathao_info->token,
                 'Content-Type' => 'application/json',
-                ])->get($pathao_info->url . '/api/v1/stores');
+            ])->get($pathao_info->url.'/api/v1/stores');
             $pathaostore = $response2->json();
         } else {
             $pathaocities = [];
             $pathaostore = [];
         }
-        return view('backEnd.order.index',compact('show_data','order_status','users', 'steadfast','pathaostore','pathaocities'));
+
+        return view('backEnd.order.index', compact('show_data', 'order_status', 'users', 'steadfast', 'pathaostore', 'pathaocities'));
     }
 
     public function pathaocity(Request $request)
     {
-        $pathao_info = Courierapi::where(['status'=>1, 'type'=>'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
-        if($pathao_info) {
-            $response = Http::get($pathao_info->url . '/api/v1/cities/'.$request->city_id.'/zone-list');
+        $pathao_info = Courierapi::where(['status' => 1, 'type' => 'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
+        if ($pathao_info) {
+            $response = Http::get($pathao_info->url.'/api/v1/cities/'.$request->city_id.'/zone-list');
             $pathaozones = $response->json();
+
             return response()->json($pathaozones);
         } else {
             return response()->json([]);
         }
     }
+
     public function pathaozone(Request $request)
     {
-        $pathao_info = Courierapi::where(['status'=>1, 'type'=>'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
-        if($pathao_info) {
-            $response = Http::get($pathao_info->url . '/api/v1/zones/'.$request->zone_id.'/area-list');
+        $pathao_info = Courierapi::where(['status' => 1, 'type' => 'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
+        if ($pathao_info) {
+            $response = Http::get($pathao_info->url.'/api/v1/zones/'.$request->zone_id.'/area-list');
             $pathaoareas = $response->json();
+
             return response()->json($pathaoareas);
         } else {
-             return response()->json([]);
+            return response()->json([]);
         }
     }
 
@@ -98,10 +102,10 @@ class OrderController extends Controller
             $pathao_info = Courierapi::where(['status' => 1, 'type' => 'pathao'])->select('id', 'type', 'url', 'token', 'status')->first();
             if ($pathao_info) {
                 $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $pathao_info->token,
+                    'Authorization' => 'Bearer '.$pathao_info->token,
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
-                ])->post($pathao_info->url . '/api/v1/orders', [
+                ])->post($pathao_info->url.'/api/v1/orders', [
                     'store_id' => $request->pathaostore,
                     'merchant_order_id' => $order->invoice_id,
                     'sender_name' => 'Test',
@@ -123,31 +127,35 @@ class OrderController extends Controller
             }
             if ($response->status() == '200') {
                 Toastr::success($response['data']['consignment_id'], 'Courier Tracking ID');
+
                 return response()->json(['status' => 'success', 'message' => $response['data']['consignment_id'], 'Courier Tracking ID']);
             } else {
                 Toastr::error($response['message'], 'Courier Order Faild');
+
                 return response()->json(['status' => 'failed', 'message' => $response['message'], 'Courier Order Faild']);
             }
+
             return redirect()->back();
-
-
         }
     }
 
-    public function invoice($invoice_id){
-        $order = Order::where(['invoice_id'=>$invoice_id])->with('orderdetails','payment','shipping','customer')->firstOrFail();
-        return view('backEnd.order.invoice',compact('order'));
+    public function invoice($invoice_id)
+    {
+        $order = Order::where(['invoice_id' => $invoice_id])->with('orderdetails', 'payment', 'shipping', 'customer')->firstOrFail();
+
+        return view('backEnd.order.invoice', compact('order'));
     }
 
-    public function process($invoice_id){
-        $data = Order::where(['invoice_id'=>$invoice_id])->select('id','invoice_id','order_status')->with('orderdetails')->first();
-        $shippingcharge = ShippingCharge::where('status',1)->get();
-        return view('backEnd.order.process',compact('data','shippingcharge'));
+    public function process($invoice_id)
+    {
+        $data = Order::where(['invoice_id' => $invoice_id])->select('id', 'invoice_id', 'order_status')->with('orderdetails')->first();
+        $shippingcharge = ShippingCharge::where('status', 1)->get();
+
+        return view('backEnd.order.process', compact('data', 'shippingcharge'));
     }
 
     public function order_process(Request $request)
     {
-
         $link = OrderStatus::find($request->status)->slug;
         $order = Order::find($request->id);
         $courier = $order->order_status;
@@ -177,106 +185,117 @@ class OrderController extends Controller
         $shipping_update->area = $shippingfee->name;
         $shipping_update->save();
 
+        if ($request->status == 5 && $courier != 5) {
+            $courier_info = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
 
+            if ($courier_info) {
+                $consignmentData = [
+                    'invoice' => $order->invoice_id,
+                    'recipient_name' => $order->shipping ? $order->shipping->name : 'InboxHat',
+                    'recipient_phone' => $order->shipping ? $order->shipping->phone : '01750578495',
+                    'recipient_address' => $order->shipping ? $order->shipping->address : 'Dhaka',
+                    'cod_amount' => $order->amount,
+                ];
 
-if ($request->status == 5 && $courier != 5) {
-    $courier_info = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
+                $client = new Client();
 
-    if ($courier_info) {
-        $consignmentData = [
-            'invoice'           => $order->invoice_id,
-            'recipient_name'    => $order->shipping ? $order->shipping->name : 'InboxHat',
-            'recipient_phone'   => $order->shipping ? $order->shipping->phone : '01750578495',
-            'recipient_address' => $order->shipping ? $order->shipping->address : 'Dhaka',
-            'cod_amount'        => $order->amount,
-        ];
+                try {
+                    $response = $client->post($courier_info->url, [
+                        'json' => $consignmentData,
+                        'headers' => [
+                            'Api-Key' => $courier_info->api_key,
+                            'Secret-Key' => $courier_info->secret_key,
+                            'Accept' => 'application/json',
+                        ],
+                    ]);
 
-        $client = new Client();
+                    $responseData = json_decode($response->getBody(), true);
 
-        try {
-            $response = $client->post($courier_info->url, [
-                'json'    => $consignmentData,
-                'headers' => [
-                    'Api-Key'    => $courier_info->api_key,
-                    'Secret-Key' => $courier_info->secret_key,
-                    'Accept'     => 'application/json',
-                ],
-            ]);
+                    // ✅ Save tracking ID if available
+                    if (! empty($responseData['consignment_id'])) {
+                        $order->courier_tracking_id = $responseData['consignment_id'];
+                        $order->courier = 'steadfast';
+                        $order->save();
+                    }
 
-            $responseData = json_decode($response->getBody(), true);
-
-            // ✅ Save tracking ID if available
-            if (!empty($responseData['consignment_id'])) {
-                $order->courier_tracking_id = $responseData['consignment_id'];
-                $order->courier = 'steadfast';
-                $order->save();
+                    Toastr::success('Success', 'Order sent to SteadFast successfully');
+                } catch (\Exception $e) {
+                    Toastr::error('Courier API Error: '.$e->getMessage(), 'Error');
+                }
+            } else {
+                Toastr::error('SteadFast API info not found', 'Error');
             }
 
-            Toastr::success('Success', 'Order sent to SteadFast successfully');
-        } catch (\Exception $e) {
-            Toastr::error('Courier API Error: ' . $e->getMessage(), 'Error');
+            return redirect('admin/order/'.$link);
         }
 
-    } else {
-        Toastr::error('SteadFast API info not found', 'Error');
-    }
+        Toastr::success('Success', 'Order status changed successfully');
 
-    return redirect('admin/order/' . $link);
-}
-
-Toastr::success('Success', 'Order status changed successfully');
-return redirect('admin/order/' . $link);
+        return redirect('admin/order/'.$link);
 
         Toastr::success('Success', 'Order status change successfully');
-        return redirect('admin/order/' . $link);
+
+        return redirect('admin/order/'.$link);
     }
 
-    public function destroy(Request $request){
-        $order = Order::where('id',$request->id)->delete();
-        $order_details = OrderDetails::where('order_id',$request->id)->delete();
-        $shipping = Shipping::where('order_id',$request->id)->delete();
-        $payment = Payment::where('order_id',$request->id)->delete();
-        Toastr::success('Success','Order delete success successfully');
+    public function destroy(Request $request)
+    {
+        $order = Order::where('id', $request->id)->delete();
+        $order_details = OrderDetails::where('order_id', $request->id)->delete();
+        $shipping = Shipping::where('order_id', $request->id)->delete();
+        $payment = Payment::where('order_id', $request->id)->delete();
+        Toastr::success('Success', 'Order delete success successfully');
+
         return redirect()->back();
     }
 
-    public function order_assign(Request $request){
+    public function order_assign(Request $request)
+    {
         $products = Order::whereIn('id', $request->input('order_ids'))->update(['user_id' => $request->user_id]);
-        return response()->json(['status'=>'success','message'=>'Order user id assign']);
+
+        return response()->json(['status' => 'success', 'message' => 'Order user id assign']);
     }
 
-    public function order_status(Request $request){
+    public function order_status(Request $request)
+    {
         $orders = Order::whereIn('id', $request->input('order_ids'))->update(['order_status' => $request->order_status]);
 
-        if($request->order_status == 5){
+        if ($request->order_status == 5) {
             $orders = Order::whereIn('id', $request->input('order_ids'))->get();
-            foreach($orders as $order){
-                $orders_details = OrderDetails::select('id','order_id','product_id')->where('order_id',$order->id)->get();
-                foreach($orders_details as $order_details){
-                    $product = Product::select('id','stock')->find($order_details->product_id);
+            foreach ($orders as $order) {
+                $orders_details = OrderDetails::select('id', 'order_id', 'product_id')->where('order_id', $order->id)->get();
+                foreach ($orders_details as $order_details) {
+                    $product = Product::select('id', 'stock')->find($order_details->product_id);
                     $product->stock -= $order_details->qty;
                     $product->save();
                 }
             }
         }
-        return response()->json(['status'=>'success','message'=>'Order status change successfully']);
+
+        return response()->json(['status' => 'success', 'message' => 'Order status change successfully']);
     }
 
-    public function bulk_destroy(Request $request){
+    public function bulk_destroy(Request $request)
+    {
         $orders_id = $request->order_ids;
-        foreach($orders_id as $order_id){
-            $order = Order::where('id',$order_id)->delete();
-            $order_details = OrderDetails::where('order_id',$order_id)->delete();
-            $shipping = Shipping::where('order_id',$order_id)->delete();
-            $payment = Payment::where('order_id',$order_id)->delete();
+        foreach ($orders_id as $order_id) {
+            $order = Order::where('id', $order_id)->delete();
+            $order_details = OrderDetails::where('order_id', $order_id)->delete();
+            $shipping = Shipping::where('order_id', $order_id)->delete();
+            $payment = Payment::where('order_id', $order_id)->delete();
         }
-        return response()->json(['status'=>'success','message'=>'Order delete successfully']);
+
+        return response()->json(['status' => 'success', 'message' => 'Order delete successfully']);
     }
-    public function order_print(Request $request){
-        $orders = Order::whereIn('id', $request->input('order_ids'))->with('orderdetails','payment','shipping','customer')->get();
+
+    public function order_print(Request $request)
+    {
+        $orders = Order::whereIn('id', $request->input('order_ids'))->with('orderdetails', 'payment', 'shipping', 'customer')->get();
         $view = view('backEnd.order.print', ['orders' => $orders])->render();
+
         return response()->json(['status' => 'success', 'view' => $view]);
     }
+
     public function bulk_courier($slug, Request $request)
     {
         $courier_info = Courierapi::where(['status' => 1, 'type' => $slug])->first();
@@ -291,7 +310,7 @@ return redirect('admin/order/' . $link);
                         'recipient_name' => $order->shipping ? $order->shipping->name : 'InboxHat',
                         'recipient_phone' => $order->shipping ? $order->shipping->phone : '01750578495',
                         'recipient_address' => $order->shipping ? $order->shipping->address : '01750578495',
-                        'cod_amount' => $order->amount
+                        'cod_amount' => $order->amount,
                     ];
                     $client = new Client();
                     $response = $client->post('$courier_info->url', [
@@ -313,40 +332,45 @@ return redirect('admin/order/' . $link);
                         $message = 'Your order place to courier failed';
                         $status = 'failed';
                     }
+
                     return response()->json(['status' => $status, 'message' => $message]);
                 }
-
             }
         } else {
-            return "stop";
+            return 'stop';
         }
     }
-    public function stock_report(Request $request){
-        $products = Product::select('id', 'name','new_price','stock')
+
+    public function stock_report(Request $request)
+    {
+        $products = Product::select('id', 'name', 'new_price', 'stock')
             ->where('status', 1);
         if ($request->keyword) {
-            $products = $products->where('name', 'LIKE', '%' . $request->keyword . "%");
+            $products = $products->where('name', 'LIKE', '%'.$request->keyword.'%');
         }
         if ($request->category_id) {
             $products = $products->where('category_id', $request->category_id);
         }
         if ($request->start_date && $request->end_date) {
-            $products =$products->whereBetween('updated_at', [$request->start_date,$request->end_date]);
+            $products = $products->whereBetween('updated_at', [$request->start_date, $request->end_date]);
         }
         $total_purchase = $products->sum(\DB::raw('purchase_price * stock'));
         $total_stock = $products->sum('stock');
         $total_price = $products->sum(\DB::raw('new_price * stock'));
         $products = $products->paginate(10);
-        $categories = Category::where('status',1)->get();
-        return view('backEnd.reports.stock',compact('products','categories','total_purchase','total_stock','total_price'));
+        $categories = Category::where('status', 1)->get();
+
+        return view('backEnd.reports.stock', compact('products', 'categories', 'total_purchase', 'total_stock', 'total_price'));
     }
-    public function order_report(Request $request){
-        $users = User::where('status',1)->get();
-        $orders = OrderDetails::with('shipping','order')->whereHas('order', function ($query){
-                $query->where('order_status', 6);
-            });
+
+    public function order_report(Request $request)
+    {
+        $users = User::where('status', 1)->get();
+        $orders = OrderDetails::with('shipping', 'order')->whereHas('order', function ($query) {
+            $query->where('order_status', 6);
+        });
         if ($request->keyword) {
-            $orders = $orders->where('name', 'LIKE', '%' . $request->keyword . "%");
+            $orders = $orders->where('name', 'LIKE', '%'.$request->keyword.'%');
         }
         if ($request->user_id) {
             $orders = $orders->whereHas('order', function ($query) use ($request) {
@@ -354,108 +378,158 @@ return redirect('admin/order/' . $link);
             });
         }
         if ($request->start_date && $request->end_date) {
-            $orders =$orders->whereBetween('updated_at', [$request->start_date,$request->end_date]);
+            $orders = $orders->whereBetween('updated_at', [$request->start_date, $request->end_date]);
         }
         $total_purchase = $orders->sum(\DB::raw('purchase_price * qty'));
         $total_item = $orders->sum('qty');
         $total_sales = $orders->sum(\DB::raw('sale_price * qty'));
         $orders = $orders->paginate(10);
-        return view('backEnd.reports.order',compact('orders','users','total_purchase','total_item','total_sales'));
+
+        return view('backEnd.reports.order', compact('orders', 'users', 'total_purchase', 'total_item', 'total_sales'));
     }
 
-    public function order_create(){
-        $products = Product::select('id','name','new_price','product_code')->where(['status'=>1])->get();
-        $cartinfo  = Cart::instance('pos_shopping')->content();
-        $shippingcharge = ShippingCharge::where('status',1)->get();
-        return view('backEnd.order.create',compact('products','cartinfo','shippingcharge'));
+    public function order_create(Request $request)
+    {
+        $incompleteOrder = null;
+        if ($request->incom_id) {
+            $incompleteOrder = \App\Models\IncompleteOrder::find($request->incom_id);
+            if ($incompleteOrder) {
+                Cart::instance('pos_shopping')->destroy();
+                Session::forget('pos_shipping');
+                Session::forget('pos_discount');
+                Session::forget('product_discount');
+
+                $cart_items = json_decode($incompleteOrder->cart_details);
+                if ($cart_items && (is_array($cart_items) || is_object($cart_items))) {
+                    foreach ($cart_items as $item) {
+                        $options = (array) ($item->options ?? []);
+                        $prod = Product::with('image')->find($item->id);
+                        if (!isset($options['image'])) {
+                            $options['image'] = ($prod && $prod->image) ? $prod->image->image : 'public/uploads/default.png';
+                        }
+                        if (!isset($options['purchase_price'])) {
+                            $options['purchase_price'] = $prod ? $prod->purchase_price : 0;
+                        }
+                        if (!isset($options['product_discount'])) {
+                            $options['product_discount'] = 0;
+                        }
+                        Cart::instance('pos_shopping')->add([
+                            'id' => $item->id,
+                            'name' => $item->name ?? ($prod ? $prod->name : 'Product'),
+                            'qty' => $item->qty ?? 1,
+                            'price' => $item->price ?? ($prod ? $prod->new_price : 0),
+                            'options' => $options,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $products = Product::select('id', 'name', 'new_price', 'product_code')->where(['status' => 1])->get();
+        $cartinfo = Cart::instance('pos_shopping')->content();
+        $shippingcharge = ShippingCharge::where('status', 1)->get();
+        $orderstatus = OrderStatus::where('status', 1)->orderBy('id', 'asc')->get();
+        if ($orderstatus->isEmpty()) {
+            $orderstatus = OrderStatus::orderBy('id', 'asc')->get();
+        }
+
+        return view('backEnd.order.create', compact('products', 'cartinfo', 'shippingcharge', 'incompleteOrder', 'orderstatus'));
     }
 
-    public function order_store(Request $request){
-        $this->validate($request,[
-            'name'=>'required',
-            'phone'=>'required',
-            'address'=>'required',
-            'area'=>'required',
+    public function order_store(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'phone' => 'required',
+            'address' => 'required',
+            'area' => 'required',
         ]);
 
-        if(Cart::instance('pos_shopping')->count() <= 0) {
+        if (Cart::instance('pos_shopping')->count() <= 0) {
             Toastr::error('Your shopping empty', 'Failed!');
+
             return redirect()->back();
         }
 
         $subtotal = Cart::instance('pos_shopping')->subtotal();
-        $subtotal = str_replace(',','',$subtotal);
-        $subtotal = str_replace('.00', '',$subtotal);
-        $discount = Session::get('pos_discount')+Session::get('product_discount');
-        $shippingfee  = ShippingCharge::find($request->area);
+        $subtotal = str_replace(',', '', $subtotal);
+        $subtotal = str_replace('.00', '', $subtotal);
+        $discount = Session::get('pos_discount') + Session::get('product_discount');
+        $shippingfee = ShippingCharge::find($request->area);
 
-        $exits_customer = Customer::where('phone',$request->phone)->select('phone','id')->first();
-        if($exits_customer){
+        $exits_customer = Customer::where('phone', $request->phone)->select('phone', 'id')->first();
+        if ($exits_customer) {
             $customer_id = $exits_customer->id;
-        }else{
-            $password = rand(111111,999999);
-            $store              = new Customer();
-            $store->name        = $request->name;
-            $store->slug        = $request->name;
-            $store->phone       = $request->phone;
-            $store->password    = bcrypt($password);
-            $store->verify      = 1;
-            $store->status      = 'active';
+        } else {
+            $password = rand(111111, 999999);
+            $store = new Customer();
+            $store->name = $request->name;
+            $store->slug = $request->name;
+            $store->phone = $request->phone;
+            $store->password = bcrypt($password);
+            $store->verify = 1;
+            $store->status = 'active';
             $store->save();
             $customer_id = $store->id;
         }
 
-         // order data save
-        $order                   = new Order();
-        $order->invoice_id       = rand(11111,99999);
-        $order->amount           = ($subtotal + $shippingfee->amount) - $discount;
-        $order->discount         = $discount ? $discount : 0;
-        $order->shipping_charge  = $shippingfee->amount;
-        $order->customer_id      =  $customer_id;
-        $order->order_status     = 1;
-        $order->note             = $request->note;
+        // order data save
+        $order = new Order();
+        $order->invoice_id = rand(11111, 99999);
+        $order->amount = ($subtotal + $shippingfee->amount) - $discount;
+        $order->discount = $discount ? $discount : 0;
+        $order->shipping_charge = $shippingfee->amount;
+        $order->customer_id = $customer_id;
+        $order->order_status = $request->status ? $request->status : 1;
+        $order->note = $request->note;
         $order->save();
 
         // shipping data save
-        $shipping              =   new Shipping();
-        $shipping->order_id    =   $order->id;
-        $shipping->customer_id =   $customer_id;
-        $shipping->name        =   $request->name;
-        $shipping->phone       =   $request->phone;
-        $shipping->address     =   $request->address;
-        $shipping->area        =   $shippingfee->name;
+        $shipping = new Shipping();
+        $shipping->order_id = $order->id;
+        $shipping->customer_id = $customer_id;
+        $shipping->name = $request->name;
+        $shipping->phone = $request->phone;
+        $shipping->address = $request->address;
+        $shipping->area = $shippingfee->name;
         $shipping->save();
 
         // payment data save
-        $payment                 = new Payment();
-        $payment->order_id       = $order->id;
-        $payment->customer_id    = $customer_id;
+        $payment = new Payment();
+        $payment->order_id = $order->id;
+        $payment->customer_id = $customer_id;
         $payment->payment_method = 'Cash On Delivery';
-        $payment->amount         = $order->amount;
+        $payment->amount = $order->amount;
         $payment->payment_status = 'pending';
         $payment->save();
 
-       // order details data save
-        foreach(Cart::instance('pos_shopping')->content() as $cart){
-            $order_details                   =   new OrderDetails();
-            $order_details->order_id         =   $order->id;
-            $order_details->product_id       =   $cart->id;
-            $order_details->product_name     =   $cart->name;
-            $order_details->purchase_price   =   $cart->options->purchase_price;
-            $order_details->product_discount =   $cart->options->product_discount;
-            $order_details->sale_price       =   $cart->price;
-            $order_details->qty              =   $cart->qty;
+        // order details data save
+        foreach (Cart::instance('pos_shopping')->content() as $cart) {
+            $order_details = new OrderDetails();
+            $order_details->order_id = $order->id;
+            $order_details->product_id = $cart->id;
+            $order_details->product_name = $cart->name;
+            $order_details->purchase_price = $cart->options->purchase_price;
+            $order_details->product_discount = $cart->options->product_discount;
+            $order_details->sale_price = $cart->price;
+            $order_details->qty = $cart->qty;
             $order_details->save();
+        }
+        if ($request->incom_id) {
+            \App\Models\IncompleteOrder::where('id', $request->incom_id)->delete();
         }
         Cart::instance('pos_shopping')->destroy();
         Session::forget('pos_shipping');
         Session::forget('pos_discount');
         Session::forget('product_discount');
         Toastr::success('Thanks, Your order place successfully', 'Success!');
+
         return redirect('admin/order/pending');
     }
-    public function cart_add(Request $request){
-        $product = Product::select('id','name','stock','new_price','old_price','purchase_price','slug')->where(['id' => $request->id])->first();
+
+    public function cart_add(Request $request)
+    {
+        $product = Product::select('id', 'name', 'stock', 'new_price', 'old_price', 'purchase_price', 'slug')->where(['id' => $request->id])->first();
         $qty = 1;
         $cartinfo = Cart::instance('pos_shopping')->add([
             'id' => $product->id,
@@ -470,37 +544,55 @@ return redirect('admin/order/' . $link);
                 'product_discount' => 0,
             ],
         ]);
+
         return response()->json(compact('cartinfo'));
     }
-    public function cart_content(){
+
+    public function cart_content()
+    {
         $cartinfo = Cart::instance('pos_shopping')->content();
-        return view('backEnd.order.cart_content',compact('cartinfo'));
+
+        return view('backEnd.order.cart_content', compact('cartinfo'));
     }
-    public function cart_details(){
+
+    public function cart_details()
+    {
         $cartinfo = Cart::instance('pos_shopping')->content();
         $discount = 0;
-        foreach($cartinfo as $cart){
-            $discount += $cart->options->product_discount*$cart->qty;
+        foreach ($cartinfo as $cart) {
+            $discount += $cart->options->product_discount * $cart->qty;
         }
-        Session::put('product_discount',$discount);
-        return view('backEnd.order.cart_details',compact('cartinfo'));
+        Session::put('product_discount', $discount);
+
+        return view('backEnd.order.cart_details', compact('cartinfo'));
     }
-    public function cart_increment(Request $request){
+
+    public function cart_increment(Request $request)
+    {
         $qty = $request->qty + 1;
         $cartinfo = Cart::instance('pos_shopping')->update($request->id, $qty);
+
         return response()->json($cartinfo);
     }
-    public function cart_decrement(Request $request){
+
+    public function cart_decrement(Request $request)
+    {
         $qty = $request->qty - 1;
         $cartinfo = Cart::instance('pos_shopping')->update($request->id, $qty);
+
         return response()->json($cartinfo);
     }
-    public function cart_remove(Request $request){
+
+    public function cart_remove(Request $request)
+    {
         $remove = Cart::instance('pos_shopping')->remove($request->id);
         $cartinfo = Cart::instance('pos_shopping')->content();
+
         return response()->json($cartinfo);
     }
-    public function product_discount(Request $request){
+
+    public function product_discount(Request $request)
+    {
         $discount = $request->discount;
         $cart = Cart::instance('pos_shopping')->content()->where('rowId', $request->id)->first();
         $cartinfo = Cart::instance('pos_shopping')->update($request->id, [
@@ -512,142 +604,176 @@ return redirect('admin/order/' . $link);
                 'product_discount' => $request->discount,
             ],
         ]);
+
         return response()->json($cartinfo);
     }
-    public function cart_shipping(Request $request){
-         $shipping = ShippingCharge::where(['status'=>1,'id'=>$request->id])->first()->amount;
+
+    public function cart_shipping(Request $request)
+    {
+        $shipping = ShippingCharge::where(['status' => 1, 'id' => $request->id])->first()->amount;
         Session::put('pos_shipping', $shipping);
+
         return response()->json($shipping);
     }
 
-    public function cart_clear(Request $request){
+    public function cart_clear(Request $request)
+    {
         $cartinfo = Cart::instance('pos_shopping')->destroy();
         Session::forget('pos_shipping');
         Session::forget('pos_discount');
         Session::forget('product_discount');
+
         return redirect()->back();
     }
-    public function order_edit($invoice_id){
-        $products = Product::select('id','name','new_price','product_code')->where(['status'=>1])->get();
-        $shippingcharge = ShippingCharge::where('status',1)->get();
-        $order = Order::where('invoice_id',$invoice_id)->first();
-        $cartinfo  = Cart::instance('pos_shopping')->destroy();
-        $shippinginfo  = Shipping::where('order_id',$order->id)->first();
-        Session::put('product_discount',$order->discount);
-        Session::put('pos_shipping',$order->shipping_charge);
-        $orderdetails = OrderDetails::where('order_id',$order->id)->get();
-        foreach($orderdetails as $ordetails){
-        $cartinfo = Cart::instance('pos_shopping')->add([
-            'id' => $ordetails->product_id,
-            'name' => $ordetails->product_name,
-            'qty' => $ordetails->qty,
-            'price' => $ordetails->sale_price,
-            'options' => [
-                'image' => $ordetails->image->image,
-                'purchase_price' => $ordetails->purchase_price,
-                'product_discount' => $ordetails->product_discount,
-                'details_id' => $ordetails->id,
-            ],
-        ]);
+
+    public function order_edit($invoice_id)
+    {
+        $products = Product::select('id', 'name', 'new_price', 'product_code')->where(['status' => 1])->get();
+        $shippingcharge = ShippingCharge::where('status', 1)->get();
+        $order = Order::where('invoice_id', $invoice_id)->first();
+        $cartinfo = Cart::instance('pos_shopping')->destroy();
+        $shippinginfo = Shipping::where('order_id', $order->id)->first();
+        Session::put('product_discount', $order->discount);
+        Session::put('pos_shipping', $order->shipping_charge);
+        $orderdetails = OrderDetails::where('order_id', $order->id)->get();
+        foreach ($orderdetails as $ordetails) {
+            $cartinfo = Cart::instance('pos_shopping')->add([
+                'id' => $ordetails->product_id,
+                'name' => $ordetails->product_name,
+                'qty' => $ordetails->qty,
+                'price' => $ordetails->sale_price,
+                'options' => [
+                    'image' => $ordetails->image->image,
+                    'purchase_price' => $ordetails->purchase_price,
+                    'product_discount' => $ordetails->product_discount,
+                    'details_id' => $ordetails->id,
+                ],
+            ]);
         }
-        $cartinfo  = Cart::instance('pos_shopping')->content();
-        return view('backEnd.order.edit',compact('products','cartinfo','shippingcharge','shippinginfo','order'));
+        $cartinfo = Cart::instance('pos_shopping')->content();
+
+        return view('backEnd.order.edit', compact('products', 'cartinfo', 'shippingcharge', 'shippinginfo', 'order'));
     }
 
-    public function order_update(Request $request){
-        $this->validate($request,[
-            'name'=>'required',
-            'phone'=>'required',
-            'address'=>'required',
-            'area'=>'required',
+    public function order_update(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'phone' => 'required',
+            'address' => 'required',
+            'area' => 'required',
         ]);
 
-        if(Cart::instance('pos_shopping')->count() <= 0) {
+        if (Cart::instance('pos_shopping')->count() <= 0) {
             Toastr::error('Your shopping empty', 'Failed!');
+
             return redirect()->back();
         }
 
         $subtotal = Cart::instance('pos_shopping')->subtotal();
-        $subtotal = str_replace(',','',$subtotal);
-        $subtotal = str_replace('.00', '',$subtotal);
-        $discount = Session::get('pos_discount')+Session::get('product_discount');
-        $shippingfee  = ShippingCharge::find($request->area);
+        $subtotal = str_replace(',', '', $subtotal);
+        $subtotal = str_replace('.00', '', $subtotal);
+        $discount = Session::get('pos_discount') + Session::get('product_discount');
+        $shippingfee = ShippingCharge::find($request->area);
 
-        $exits_customer = Customer::where('phone',$request->phone)->select('phone','id')->first();
-        if($exits_customer){
+        $exits_customer = Customer::where('phone', $request->phone)->select('phone', 'id')->first();
+        if ($exits_customer) {
             $customer_id = $exits_customer->id;
-        }else{
-            $password = rand(111111,999999);
-            $store              = new Customer();
-            $store->name        = $request->name;
-            $store->slug        = $request->name;
-            $store->phone       = $request->phone;
-            $store->password    = bcrypt($password);
-            $store->verify      = 1;
-            $store->status      = 'active';
+        } else {
+            $password = rand(111111, 999999);
+            $store = new Customer();
+            $store->name = $request->name;
+            $store->slug = $request->name;
+            $store->phone = $request->phone;
+            $store->password = bcrypt($password);
+            $store->verify = 1;
+            $store->status = 'active';
             $store->save();
             $customer_id = $store->id;
         }
 
-         // order data save
-        $order                   =  Order::where('id',$request->order_id)->first();
-        $order->invoice_id       = rand(11111,99999);
-        $order->amount           = ($subtotal + $shippingfee->amount) - $discount;
-        $order->discount         = $discount ? $discount : 0;
-        $order->shipping_charge  = $shippingfee->amount;
-        $order->customer_id      =  $customer_id;
-        $order->order_status     = 1;
-        $order->note             = $request->note;
+        // order data save
+        $order = Order::where('id', $request->order_id)->first();
+        $order->invoice_id = rand(11111, 99999);
+        $order->amount = ($subtotal + $shippingfee->amount) - $discount;
+        $order->discount = $discount ? $discount : 0;
+        $order->shipping_charge = $shippingfee->amount;
+        $order->customer_id = $customer_id;
+        $order->order_status = 1;
+        $order->note = $request->note;
         $order->save();
 
-
         // shipping data save
-        $shipping              =   Shipping::where('order_id',$request->order_id)->first();
-        $shipping->order_id    =   $order->id;
-        $shipping->customer_id =   $customer_id;
-        $shipping->name        =   $request->name;
-        $shipping->phone       =   $request->phone;
-        $shipping->address     =   $request->address;
-        $shipping->area        =   $shippingfee->name;
+        $shipping = Shipping::where('order_id', $request->order_id)->first();
+        $shipping->order_id = $order->id;
+        $shipping->customer_id = $customer_id;
+        $shipping->name = $request->name;
+        $shipping->phone = $request->phone;
+        $shipping->address = $request->address;
+        $shipping->area = $shippingfee->name;
         $shipping->save();
 
         // payment data save
-        $payment                 =  Payment::where('order_id',$request->order_id)->first();
-        $payment->order_id       = $order->id;
-        $payment->customer_id    = $customer_id;
+        $payment = Payment::where('order_id', $request->order_id)->first();
+        $payment->order_id = $order->id;
+        $payment->customer_id = $customer_id;
         $payment->payment_method = 'Cash On Delivery';
-        $payment->amount         = $order->amount;
+        $payment->amount = $order->amount;
         $payment->payment_status = 'pending';
         $payment->save();
 
-       // order details data save
-        foreach(Cart::instance('pos_shopping')->content() as $cart){
-            $exits = OrderDetails::where('id',$cart->options->details_id)->first();
-            if($exits){
-                $order_details                   =   OrderDetails::find($exits->id);
-                $order_details->product_discount =   $cart->options->product_discount;
-                $order_details->sale_price       =   $cart->price;
-                $order_details->qty              =   $cart->qty;
+        // order details data save
+        foreach (Cart::instance('pos_shopping')->content() as $cart) {
+            $exits = OrderDetails::where('id', $cart->options->details_id)->first();
+            if ($exits) {
+                $order_details = OrderDetails::find($exits->id);
+                $order_details->product_discount = $cart->options->product_discount;
+                $order_details->sale_price = $cart->price;
+                $order_details->qty = $cart->qty;
                 $order_details->save();
-            }else{
-                $order_details                   =   new OrderDetails();
-                $order_details->order_id         =   $order->id;
-                $order_details->product_id       =   $cart->id;
-                $order_details->product_name     =   $cart->name;
-                $order_details->purchase_price   =   $cart->options->purchase_price;
-                $order_details->product_discount =   $cart->options->product_discount;
-                $order_details->sale_price       =   $cart->price;
-                $order_details->qty              =   $cart->qty;
+            } else {
+                $order_details = new OrderDetails();
+                $order_details->order_id = $order->id;
+                $order_details->product_id = $cart->id;
+                $order_details->product_name = $cart->name;
+                $order_details->purchase_price = $cart->options->purchase_price;
+                $order_details->product_discount = $cart->options->product_discount;
+                $order_details->sale_price = $cart->price;
+                $order_details->qty = $cart->qty;
                 $order_details->save();
             }
-
         }
         Cart::instance('pos_shopping')->destroy();
         Session::forget('pos_shipping');
         Session::forget('pos_discount');
         Session::forget('product_discount');
         Toastr::success('Thanks, Your order place successfully', 'Success!');
+
         return redirect('admin/order/pending');
     }
 
+    public function fraudcheck(Request $request)
+    {
+        $phone = $request->phone;
+        $webConfig = GeneralWebSettings::first()->pluck('value', 'name', 'status')->toArray();
+        $apiKey = $webConfig['fraud_check_api_key'];
+
+        if ($webConfig['fraud_check_api_url'] == null) {
+            $base_url = 'https://api.bdcourier.com/courier-check';
+        } else {
+            $base_url = $webConfig['fraud_check_api_url'];
+        }
+        try {
+            $response = Http::timeout(30)->withHeaders([
+                'Authorization' => 'Bearer '.$apiKey,
+                'Content-Type' => 'application/json',
+            ])->post($base_url, [
+                'phone' => $phone,
+            ]);
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Something went wrong!'], 500);
+        }
+    }
 }

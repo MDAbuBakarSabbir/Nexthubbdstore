@@ -136,6 +136,7 @@ Route::group(['namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refe
 //     Route::get('locked', [DashboardController::class, 'locked'])->name('locked');
 //     Route::post('unlocked', [DashboardController::class, 'unlocked'])->name('unlocked');
 // });
+
 // unauthenticate admin route (গ্রুপ থেকে 'customer' মিডলওয়্যারটি বাদ দেওয়া হয়েছে)
 Route::group(['namespace' => 'Admin', 'prefix' => 'admin', 'middleware' => ['ipcheck', 'check_refer']], function () {
     Route::get('locked', [DashboardController::class, 'locked'])->name('locked');
@@ -145,9 +146,9 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin', 'middleware' => ['ipc
 // ajax route
 Route::get('/ajax-product-subcategory', [ProductController::class, 'getSubcategory']);
 Route::get('/down', function () {
-Artisan::call('down');
+    Artisan::call('down');
 
-return 'now Down!';
+    return 'now Down!';
 });
 Route::get('/ajax-product-childcategory', [ProductController::class, 'getChildcategory']);
 
@@ -230,6 +231,10 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     // courierapi
     Route::get('courierapi/manage', [ApiIntegrationController::class, 'courier_manage'])->name('courierapi.manage');
     Route::post('courierapi/save', [ApiIntegrationController::class, 'courier_update'])->name('courierapi.update');
+
+    // fraudcheckapi
+    Route::get('fraudcheckapi/manage', [ApiIntegrationController::class, 'fraudcheckapi'])->name('fraudcheckapi.manage');
+    Route::post('fraudcheckapi/save', [ApiIntegrationController::class, 'fraudcheckapi_update'])->name('fraudcheckapi.update');
 
     // attribute
     Route::get('orderstatus/manage', [OrderStatusController::class, 'index'])->name('orderstatus.index');
@@ -423,7 +428,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::get('order-pathao', [OrderController::class, 'order_pathao'])->name('admin.order.pathao');
     Route::get('/pathao-city', [OrderController::class, 'pathaocity'])->name('pathaocity');
     Route::get('/pathao-zone', [OrderController::class, 'pathaozone'])->name('pathaozone');
-
+    Route::post('/fraud-check', [OrderController::class, 'fraudcheck'])->name('fraud.check');
     // Order route
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('review/pending', [ReviewController::class, 'pending'])->name('reviews.pending');

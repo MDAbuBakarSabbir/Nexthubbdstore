@@ -27,6 +27,10 @@
     .pos-card-body {
         padding: 24px;
     }
+    .select2-container {
+        width: 100% !important;
+        display: block;
+    }
     .form-control, .select2-container .select2-selection--single {
         border-radius: 8px !important;
         border: 1px solid #dee2e6 !important;
@@ -174,16 +178,87 @@
 
     <form action="{{route('admin.order.store')}}" method="POST" class="pos_form" data-parsley-validate="" enctype="multipart/form-data">
         @csrf
+        <input type="hidden" name="incom_id" value="{{ isset($incompleteOrder) ? $incompleteOrder->id : '' }}">
         <div class="row">
-            <!-- Left Column: Products and Cart -->
-            <div class="col-lg-8">
+            <!-- Left Column: Customer Information -->
+            <div class="col-lg-4">
                 <div class="card pos-card">
+                    <div class="pos-card-header">
+                        <h5 class="pos-card-title"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h5>
+                    </div>
+                    <div class="pos-card-body">
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-semibold">Customer Name *</label>
+                            <input type="text" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" name="name" value="{{old('name', isset($incompleteOrder) ? $incompleteOrder->name : '')}}" required />
+                            @error('name')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-semibold">Customer Phone *</label>
+                            <input type="text" id="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="Enter mobile number" name="phone" value="{{old('phone', isset($incompleteOrder) ? $incompleteOrder->phone : '')}}" required />
+                            @error('phone')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-semibold">Delivery Address *</label>
+                            <input type="text" placeholder="Enter full delivery address" id="address" class="form-control @error('address') is-invalid @enderror" name="address" value="{{old('address', isset($incompleteOrder) ? $incompleteOrder->address : '')}}" required />
+                            @error('address')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-semibold">Delivery Area *</label>
+                            <select id="area" class="form-control select2 @error('area') is-invalid @enderror" name="area" style="width: 100%;" required>
+                                <option value="">Select Delivery Area...</option>
+                                @foreach($shippingcharge as $key=>$value)
+                                <option value="{{$value->id}}" {{ old('area') == $value->id ? 'selected' : '' }}>{{$value->name}} (৳{{$value->amount}})</option>
+                                @endforeach
+                            </select>
+                            @error('area')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label font-weight-semibold">Order Status *</label>
+                            <select name="status" id="status" class="form-control select2 @error('status') is-invalid @enderror" style="width: 100%;" required>
+                                <option value="">Select Status...</option>
+                                @foreach($orderstatus as $key=>$value)
+                                <option value="{{$value->id}}" {{ (old('status') ?: 1) == $value->id ? 'selected' : '' }}>{{$value->name}}</option>
+                                @endforeach
+                            </select>
+                            @error('status')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="form-label font-weight-semibold">Order Note</label>
+                            <textarea name="note" class="form-control" rows="2" placeholder="Optional delivery instructions or notes...">{{old('note')}}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Products & Order Summary -->
+            <div class="col-lg-8">
+                <div class="card pos-card mb-4">
                     <div class="pos-card-header d-flex justify-content-between align-items-center">
                         <h5 class="pos-card-title"><i class="fas fa-box-open me-2 text-primary"></i>Select Products</h5>
                     </div>
                     <div class="pos-card-body">
                         <div class="form-group mb-4">
-                            <select id="cart_add" class="form-control select2" data-placeholder="Search & Select Product to Add...">
+                            <select id="cart_add" class="form-control select2" style="width: 100%;" data-placeholder="Search & Select Product to Add...">
                                 <option value="">Select Product...</option>
                                 @foreach($products as $value)
                                 <option value="{{$value->id}}">{{$value->name}} (৳{{$value->new_price}} - Code: {{$value->product_code}})</option>
@@ -245,63 +320,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Right Column: Customer Info & Order Summary -->
-            <div class="col-lg-4">
-                <!-- Customer Details Card -->
-                <div class="card pos-card">
-                    <div class="pos-card-header">
-                        <h5 class="pos-card-title"><i class="fas fa-user me-2 text-primary"></i>Customer Information</h5>
-                    </div>
-                    <div class="pos-card-body">
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-semibold">Customer Name *</label>
-                            <input type="text" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Enter full name" name="name" value="{{old('name')}}" required />
-                            @error('name')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-semibold">Customer Phone *</label>
-                            <input type="text" id="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="Enter mobile number" name="phone" value="{{old('phone')}}" required />
-                            @error('phone')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-semibold">Delivery Address *</label>
-                            <input type="text" placeholder="Enter full delivery address" id="address" class="form-control @error('address') is-invalid @enderror" name="address" value="{{old('address')}}" required />
-                            @error('address')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-semibold">Delivery Area *</label>
-                            <select id="area" class="form-control select2 @error('area') is-invalid @enderror" name="area" required>
-                                <option value="">Select Delivery Area...</option>
-                                @foreach($shippingcharge as $key=>$value)
-                                <option value="{{$value->id}}" {{ old('area') == $value->id ? 'selected' : '' }}>{{$value->name}} (৳{{$value->amount}})</option>
-                                @endforeach
-                            </select>
-                            @error('area')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label class="form-label font-weight-semibold">Order Note</label>
-                            <textarea name="note" class="form-control" rows="2" placeholder="Optional delivery instructions or notes...">{{old('note')}}</textarea>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Order Summary Card -->
                 <div class="card pos-card">
@@ -309,7 +327,7 @@
                         <h5 class="pos-card-title"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Order Summary</h5>
                     </div>
                     <div class="pos-card-body">
-                        <table class="table summary-table mb-3">
+                        <table class="table summary-table mb-4">
                             <tbody id="cart_details">
                                 @php
                                     $subtotal = Cart::instance('pos_shopping')->subtotal();
