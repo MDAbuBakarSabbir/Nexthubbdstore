@@ -54,7 +54,7 @@ class GeneralSettingController extends Controller
         $height = '';
         $img->height() > $img->width() ? $width=null : $height=null;
         $img->resize($width, $height);
-        $img->save($imageUrl);
+        $img->save(public_path('uploads/settings/'.$name));
 
         // dark logo
         $image2 = $request->file('dark_logo');
@@ -69,7 +69,7 @@ class GeneralSettingController extends Controller
         $height2 = '';
         $img2->height() > $img2->width() ? $width2=null : $height2=null;
         $img2->resize($width2, $height2);
-        $img2->save($image2Url);
+        $img2->save(public_path('uploads/settings/'.$name2));
 
         // image with intervention 
         $image3 = $request->file('favicon');
@@ -84,7 +84,7 @@ class GeneralSettingController extends Controller
         $height3 = 32;
         $img3->height() > $img3->width() ? $width3=null : $height3=null;
         $img3->resize($width3, $height3);
-        $img3->save($image3Url);
+        $img3->save(public_path('uploads/settings/'.$name3));
 		
 		        // image with intervention 
         $image4 = $request->file('og_baner');
@@ -99,7 +99,7 @@ class GeneralSettingController extends Controller
         $height4 = 793;
         $img4->height() > $img4->width() ? $width4=null : $height4=null;
         $img4->resize($width4, $height4);
-        $img4->save($image4Url);
+        $img4->save(public_path('uploads/settings/'.$name4));
 		
 
         $input = $request->all();
@@ -141,7 +141,7 @@ class GeneralSettingController extends Controller
             $height = '';
             $img->height() > $img->width() ? $width=null : $height=null;
             $img->resize($width, $height);
-            $img->save($imageUrl);
+            $img->save(public_path('uploads/settings/'.$name));
             $input['white_logo'] = $imageUrl;
         }else{
             $input['white_logo'] = $update_data->white_logo;
@@ -162,7 +162,7 @@ class GeneralSettingController extends Controller
             $height2 = '';
             $img2->height() > $img2->width() ? $width2=null : $height2=null;
             $img2->resize($width2, $height2);
-            $img2->save($image2Url);
+            $img2->save(public_path('uploads/settings/'.$name2));
             $input['dark_logo'] = $image2Url;
         }else{
             $input['dark_logo'] = $update_data->dark_logo;
@@ -183,7 +183,7 @@ class GeneralSettingController extends Controller
             $height3 = 32;
             $img3->height() > $img3->width() ? $width3=null : $height3=null;
             $img3->resize($width3, $height3);
-            $img3->save($image3Url);
+            $img3->save(public_path('uploads/settings/'.$name3));
             $input['favicon'] = $image3Url;
         }else{
             $input['favicon'] = $update_data->favicon;
@@ -205,7 +205,7 @@ class GeneralSettingController extends Controller
             $height4 = 793;
             $img4->height() > $img4->width() ? $width4=null : $height4=null;
             $img4->resize($width4, $height4);
-            $img4->save($image4Url);
+            $img4->save(public_path('uploads/settings/'.$name4));
             $input['og_baner'] = $image4Url;
         }else{
             $input['og_baner'] = $update_data->og_baner;
