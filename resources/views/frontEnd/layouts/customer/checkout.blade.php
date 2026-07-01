@@ -297,7 +297,7 @@
         }
     });
 </script>
-<script>
+{{-- <script>
     $(document).ready(function() {
         // Setup CSRF token for AJAX
         $.ajaxSetup({
@@ -308,36 +308,106 @@
 
         var timer = null;
 
-        // Trigger on input, change, and blur
-        $('#name, #phone, #address').on('input change blur', function(event) {
+        $(document).on('input keyup change blur', '#name, #phone, #address, #area', function(event) {
             if (timer) {
                 clearTimeout(timer);
             }
 
-            var name = $('#name').val();
-            var phone = $('#phone').val();
-            var address = $('#address').val();
-            
-            // Save if there is any data entered
-            if (name.length > 0 || phone.length > 0 || address.length > 0) {
-                var delay = (event.type === 'blur') ? 0 : 1000;
-                
-                timer = setTimeout(function() {
-                    $.ajax({
-                        url: "{{ route('customer.incomplete_order_save') }}",
-                        type: "POST",
-                        data: {
-                            name: name,
-                            phone: phone,
-                            address: address
-                        },
-                        success: function(response) {
-                            console.log("Incomplete order saved");
-                        }
-                    });
-                }, delay);
+            var delay = (event.type === 'blur') ? 0 : 2000;
+
+            timer = setTimeout(function() {
+                saveIncompleteOrder();
+            }, delay);
+        });
+
+        function saveIncompleteOrder() {
+            var name = $('#name').val().trim();
+            var phone = $('#phone').val().trim();0000
+            var address = $('#address').val().trim();
+            var area = $('#area option:selected').text().trim();
+
+            // Do not save if name and phone are empty, or if phone is less than 11 digits
+            if (name === "" && phone === "") return;
+            if (phone.length < 11) return;
+
+            $.ajax({
+                url: "{{ route('customer.incomplete_order_save') }}",
+                type: "POST",
+                data: {
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    area: area
+                },
+                success: function(response) {
+                    console.log("Incomplete order saved");
+                }
+            });
+        }
+    });
+</script> --}}
+
+<script>
+    $(document).ready(function() {
+        // Setup CSRF token for AJAX
+        $.ajaxSetup({
+            headers: {
+                // যদি আপনার লেআউটে মেটা ট্যাগ না থাকে, তবে সরাসরি ব্লেড ফাংশন ব্যবহারের ব্যাকআপ ট্রিক
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}'
             }
         });
+
+        var timer = null;
+
+        $(document).on('input keyup change blur', '#name, #phone, #address, #area', function(event) {
+            if (timer) {
+                clearTimeout(timer);
+            }
+
+            var delay = (event.type === 'blur') ? 0 : 2000;
+
+            timer = setTimeout(function() {
+                saveIncompleteOrder();
+            }, delay);
+        });
+
+        function saveIncompleteOrder() {
+            var name = $('#name').val().trim();
+            var phone = $('#phone').val().trim(); // টাইপো '0000' রিমুভ করা হয়েছে
+            var address = $('#address').val().trim();
+            
+            // এরিয়া সিলেক্ট করা থাকলে টেক্সট নিবে, নতুবা খালি রাখবে
+            var areaSelect = $('#area option:selected');
+            var area = "";
+            if(areaSelect.val() !== "" && areaSelect.text().indexOf('নিবার্চন') === -1) {
+                area = areaSelect.text().trim();
+            }
+
+            // ফোন নাম্বার বা নাম খালি থাকলে অথবা ফোন নাম্বার ১১ ডিজিটের কম হলে ডাটা পাঠাবে না
+            if (name === "" && phone === "") return;
+            if (phone.length > 0 && phone.length < 11) return; 
+
+            $.ajax({
+    url: "{{ route('customer.incomplete_order_save') }}",
+    type: "POST",
+    headers: {
+        'Accept': 'application/json' // Laravel-কে বাধ্য করবে HTML এর বদলে JSON বা এরর রেসপন্স দিতে
+    },
+    data: {
+        name: name,
+        phone: phone,
+        address: address,
+        area: area
+    },
+    success: function(response) {
+        console.log("Incomplete order saved:", response);
+    },
+    error: function(xhr) {
+        // যদি এখনও কোনো ভ্যালিডেশন বা অথেন্টিকেশন এরর থাকে, তা এখানে দেখাবে (HTML দেখাবে না)
+        console.error("Error saving incomplete order:", xhr.responseJSON);
+    }
+});
+        }
     });
 </script>
 @endpush
