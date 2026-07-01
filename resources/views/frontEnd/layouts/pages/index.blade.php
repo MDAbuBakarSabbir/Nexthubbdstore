@@ -347,7 +347,7 @@
             responsiveClass: true,
             responsive: {
                 0: {
-                    items: 5,
+                    items: 3,
                     nav: true,
                 },
                 600: {
