@@ -71,6 +71,7 @@ return array(
     'App\\Models\\Childcategory' => $baseDir . '/app/Models/Childcategory.php',
     'App\\Models\\Color' => $baseDir . '/app/Models/Color.php',
     'App\\Models\\Contact' => $baseDir . '/app/Models/Contact.php',
+    'App\\Models\\Coupon' => $baseDir . '/app/Models/Coupon.php',
     'App\\Models\\Courierapi' => $baseDir . '/app/Models/Courierapi.php',
     'App\\Models\\CreatePage' => $baseDir . '/app/Models/CreatePage.php',
     'App\\Models\\Customer' => $baseDir . '/app/Models/Customer.php',

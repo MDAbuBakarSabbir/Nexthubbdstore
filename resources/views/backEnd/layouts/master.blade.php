@@ -466,6 +466,20 @@
               </li>
               <!-- nav items end -->
               <li class="">
+                <a href="#sidebar-coupons" data-bs-toggle="collapse">
+                  <i data-feather="airplay"></i>
+                  <span>Promotion & Coupons </span>
+                  <span class="menu-arrow"></span>
+                </a>
+                <div class="collapse" id="sidebar-coupons">
+                  <ul class="nav-second-level">
+                    <li>
+                      <a href="{{route('admin.coupons.index')}}"><i data-feather="file-plus"></i> Coupons</a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+              <li class="">
                 <a href="#sidebar-landing-page" data-bs-toggle="collapse">
                   <i data-feather="airplay"></i>
                   <span> Landing Page </span>

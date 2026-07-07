@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BannerCategoryController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CampaignController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ChildcategoryController;
 use App\Http\Controllers\Admin\ColorController;
@@ -85,6 +86,7 @@ Route::group(['namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refe
     Route::get('cart/decrement', [ShoppingController::class, 'cart_decrement'])->name('cart.decrement');
 
     Route::get('cart/increment', [ShoppingController::class, 'cart_increment'])->name('cart.increment');
+    Route::post('apply-coupon', [ShoppingController::class, 'applyCoupon'])->name('apply.coupon');
 });
 
 Route::group(['prefix' => 'customer', 'namespace' => 'Frontend', 'middleware' => ['ipcheck', 'check_refer']], function () {
@@ -331,6 +333,16 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::post('campaign/active', [CampaignController::class, 'active'])->name('campaign.active');
     Route::post('campaign/destroy', [CampaignController::class, 'destroy'])->name('campaign.destroy');
     Route::get('campaign/image/destroy', [CampaignController::class, 'imgdestroy'])->name('campaign.image.destroy');
+
+    // coupons
+    Route::get('coupons/manage', [CouponController::class, 'index'])->name('admin.coupons.index');
+    Route::get('coupons/create', [CouponController::class, 'create'])->name('admin.coupons.create');
+    Route::post('coupons/save', [CouponController::class, 'store'])->name('admin.coupons.store');
+    Route::get('coupons/{id}/edit', [CouponController::class, 'edit'])->name('admin.coupons.edit');
+    Route::post('coupons/update', [CouponController::class, 'update'])->name('admin.coupons.update');
+    Route::post('coupons/inactive', [CouponController::class, 'inactive'])->name('admin.coupons.inactive');
+    Route::post('coupons/active', [CouponController::class, 'active'])->name('admin.coupons.active');
+    Route::post('coupons/destroy', [CouponController::class, 'destroy'])->name('admin.coupons.destroy');
 
     // settings route
     Route::get('settings/manage', [GeneralSettingController::class, 'index'])->name('settings.index');

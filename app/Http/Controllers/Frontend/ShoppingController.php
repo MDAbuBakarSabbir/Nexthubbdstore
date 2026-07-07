@@ -81,6 +81,44 @@ class ShoppingController extends Controller
     {
         $data = Cart::instance('shopping')->count();
         return view('frontEnd.layouts.ajax.mobilecart_qty', compact('data'));
-    }
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'coupon_code' => 'required'
+        ]);
 
+        $coupon = \App\Models\Coupon::where('coupon_code', $request->coupon_code)
+            ->where('status', 1)
+            ->where('expiry_date', '>=', date('Y-m-d'))
+            ->first();
+
+        if (!$coupon) {
+            Toastr::error('Invalid or expired coupon code.', 'Error!');
+            session()->forget('discount');
+            session()->forget('coupon_code');
+            return redirect()->back();
+        }
+
+        $subtotal = Cart::instance('shopping')->subtotal();
+        $subtotal = (float)str_replace(',', '', $subtotal);
+
+        if ($coupon->buy_amount && $subtotal < $coupon->buy_amount) {
+            Toastr::error('Minimum purchase of ৳' . $coupon->buy_amount . ' required for this coupon.', 'Error!');
+            session()->forget('discount');
+            session()->forget('coupon_code');
+            return redirect()->back();
+        }
+
+        if ($coupon->discount_type == 'percentage') {
+            $discount = ($subtotal * $coupon->amount) / 100;
+        } else {
+            $discount = $coupon->amount;
+        }
+
+        session()->put('discount', $discount);
+        session()->put('coupon_code', $coupon->coupon_code);
+
+        Toastr::success('Coupon applied successfully!', 'Success!');
+        return redirect()->back();
+    }
 }

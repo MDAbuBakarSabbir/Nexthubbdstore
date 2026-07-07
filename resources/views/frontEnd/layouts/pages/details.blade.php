@@ -195,7 +195,7 @@
                                                                 {{ $details->brand ? $details->brand->name : 'Own / Local' }}
                                                             </p>
                                                         </div>
-                                                        @if ($details->stock > 0)
+                                                        @if ($details->stock <= 0)
                                                             <div class="d-flex single_product col-sm-12">
                                                                 <span class="btn px-4 add_cart_btn">Stock Out</span>
 

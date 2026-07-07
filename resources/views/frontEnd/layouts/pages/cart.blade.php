@@ -67,9 +67,10 @@
      </div>
     </div>
     <div class="coupon-form">
-     <form action="">
-      <input type="text" placeholder="apply coupon" />
-      <button>Apply</button>
+     <form action="{{ route('apply.coupon') }}" method="POST">
+      @csrf
+      <input type="text" name="coupon_code" placeholder="apply coupon" value="{{ session()->get('coupon_code') }}" required />
+      <button type="submit">Apply</button>
      </form>
     </div>
    </div>

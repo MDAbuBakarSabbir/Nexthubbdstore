@@ -615,6 +615,7 @@ class ComposerStaticInit753e73c8eeef9796420facf4bfb57683
         'App\\Models\\Childcategory' => __DIR__ . '/../..' . '/app/Models/Childcategory.php',
         'App\\Models\\Color' => __DIR__ . '/../..' . '/app/Models/Color.php',
         'App\\Models\\Contact' => __DIR__ . '/../..' . '/app/Models/Contact.php',
+        'App\\Models\\Coupon' => __DIR__ . '/../..' . '/app/Models/Coupon.php',
         'App\\Models\\Courierapi' => __DIR__ . '/../..' . '/app/Models/Courierapi.php',
         'App\\Models\\CreatePage' => __DIR__ . '/../..' . '/app/Models/CreatePage.php',
         'App\\Models\\Customer' => __DIR__ . '/../..' . '/app/Models/Customer.php',

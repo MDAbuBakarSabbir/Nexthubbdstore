@@ -56,10 +56,18 @@
            <span id="cart_shipping_cost"><span class="alinur">৳ </span><strong>{{$shipping}}</strong></span>
           </td>
          </tr>
+         @if($discount > 0)
+         <tr>
+          <th colspan="3" class="text-end px-4">ডিসকাউন্ট</th>
+          <td>
+           <span><span class="alinur">৳ </span><strong>{{$discount}}</strong></span>
+          </td>
+         </tr>
+         @endif
          <tr>
           <th colspan="3" class="text-end px-4">সর্বমোট</th>
           <td>
-           <span id="grand_total"><span class="alinur">৳ </span><strong>{{$subtotal+$shipping}}</strong></span>
+           <span id="grand_total"><span class="alinur">৳ </span><strong>{{($subtotal+$shipping) - $discount}}</strong></span>
           </td>
          </tr>
         </tfoot>

@@ -439,6 +439,7 @@ class CustomerController extends Controller
         Cart::instance('shopping')->destroy();
         Session::forget('shipping');
         Session::forget('discount');
+        Session::forget('coupon_code');
         Session::forget('step');
 
         IncompleteOrder::where('session_id', Session::getId())->orWhere('phone', $request->phone)->delete();
