@@ -298,11 +298,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-sm-12">
-                                    <button class="btn-order-confirm" type="submit">
-                                        <i class="fa-solid fa-circle-check me-2"></i> অর্ডারটি কনফার্ম করুন
-                                    </button>
-                                </div>
+
                             </div>
                         </form>
                     </div>
@@ -395,6 +391,13 @@
                             <button type="submit" class="coupon-apply-btn" style="height: 44px;">প্রয়োগ করুন</button>
                         </form>
                     </div>
+                </div>
+                
+                <!-- Order Now Button -->
+                <div class="mt-3 mb-4">
+                    <button type="submit" form="checkout-form" class="btn-order-confirm">
+                        <i class="fa-solid fa-circle-check me-2"></i> অর্ডারটি কনফার্ম করুন
+                    </button>
                 </div>
             </div>
         </div>
