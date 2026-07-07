@@ -234,6 +234,13 @@
                                 </tfoot>
                             </table>
                         </div>
+                        <div class="card-footer bg-white">
+                            <form action="{{ route('apply.coupon') }}" method="POST" class="d-flex align-items-center justify-content-between">
+                                @csrf
+                                <input type="text" name="coupon_code" class="form-control me-2" placeholder="কুপন কোড লিখুন (Coupon Code)" value="{{ session()->get('coupon_code') }}" required style="max-width: 70%;" />
+                                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">কুপন কোড দিন</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
