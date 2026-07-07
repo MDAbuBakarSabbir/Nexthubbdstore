@@ -429,6 +429,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth', 'lock', 'check_re
     Route::get('/pathao-city', [OrderController::class, 'pathaocity'])->name('pathaocity');
     Route::get('/pathao-zone', [OrderController::class, 'pathaozone'])->name('pathaozone');
     Route::post('/fraud-check', [OrderController::class, 'fraudcheck'])->name('fraud.check');
+    Route::get('/courier-balance', [ApiIntegrationController::class, 'check_balance'])->name('admin.courier_balance');
     // Order route
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('review/pending', [ReviewController::class, 'pending'])->name('reviews.pending');

@@ -89,4 +89,49 @@ class ApiIntegrationController extends Controller
 
         return redirect()->back();
     }
+
+    public function check_balance()
+    {
+        $courier_info = Courierapi::where(['status' => 1, 'type' => 'steadfast'])->first();
+        if ($courier_info) {
+            $client = new \GuzzleHttp\Client();
+            try {
+                $baseUrl = preg_replace('/\/create_order\/?$/', '', $courier_info->url);
+                $baseUrl = rtrim($baseUrl, '/');
+                $balanceUrl = $baseUrl.'/get_balance';
+
+                $response = $client->get($balanceUrl, [
+                    'headers' => [
+                        'Api-Key' => $courier_info->api_key,
+                        'Secret-Key' => $courier_info->secret_key,
+                        'Content-Type' => 'application/json',
+                    ],
+                ]);
+
+                $responseData = json_decode($response->getBody(), true);
+
+                if (isset($responseData['status']) && $responseData['status'] == 200) {
+                    return response()->json([
+                        'success' => true,
+                        'balance' => $responseData['current_balance'],
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to fetch balance from Steadfast.',
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'API Error: '.$e->getMessage(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Steadfast Courier API info not configured or inactive.',
+        ]);
+    }
 }

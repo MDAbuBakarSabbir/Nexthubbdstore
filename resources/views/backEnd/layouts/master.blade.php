@@ -20,6 +20,126 @@
     <link rel="stylesheet" href="{{asset('public/backEnd/')}}/assets/css/toastr.min.css" />
     <!-- custom css -->
     <link href="{{asset('public/backEnd/')}}/assets/css/custom.css" rel="stylesheet" type="text/css" />
+    <style>
+        /* Premium Balance Box Styling (Dark Mode Optimized) */
+        .balance-box {
+            position: relative;
+            cursor: pointer;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .balance-box:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .balance-box:active {
+            transform: translateY(0);
+        }
+
+        .balance-icon {
+            color: #a5b4fc;
+            font-size: 14px;
+            transition: transform 0.4s ease;
+        }
+
+        .balance-box:hover .balance-icon {
+            transform: scale(1.1);
+        }
+
+        .balance-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .balance-content {
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            height: 20px;
+        }
+
+        /* Initial state: Show "Tap to check" */
+        .balance-click-to-show {
+            font-size: 12px;
+            font-weight: 500;
+            color: #a5b4fc;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            opacity: 1;
+            transform: translateX(0);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Target balance text */
+        .balance-amount {
+            font-size: 13px;
+            font-weight: 700;
+            color: #34d399;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            left: 0;
+        }
+
+        /* Spinner */
+        .balance-spinner {
+            font-size: 12px;
+            color: #a5b4fc;
+            display: none;
+        }
+
+        /* Loading state styling */
+        .balance-box.loading .balance-click-to-show {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        .balance-box.loading .balance-spinner {
+            display: inline-block;
+        }
+
+        /* Revealed state styling */
+        .balance-box.revealed {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .balance-box.revealed .balance-icon {
+            color: #34d399;
+        }
+
+        .balance-box.revealed .balance-amount {
+            opacity: 1;
+            transform: translateX(0);
+            position: relative;
+        }
+
+        .balance-box.revealed .balance-click-to-show {
+            display: none;
+        }
+
+        .balance-box.revealed .balance-spinner {
+            display: none;
+        }
+    </style>
     <!-- Head js -->
     @yield('css')
     <script src="{{asset('public/backEnd/')}}/assets/js/head.js"></script>
@@ -44,6 +164,17 @@
               </div>
             </li>
 
+            <li class="dropdown d-none d-lg-inline-block">
+              <div class="balance-box" id="checkCourierBalanceBtn" title="Check Courier Balance">
+                  <i class="fa-solid fa-wallet balance-icon"></i>
+                  <span class="balance-label">Balance:</span>
+                  <div class="balance-content">
+                      <span class="balance-click-to-show"><i class="fa-solid fa-eye me-1"></i> Tap to check</span>
+                      <span class="balance-spinner"><i class="fa-solid fa-spinner fa-spin"></i></span>
+                      <span class="balance-amount" id="courierBalanceDisplay"></span>
+                  </div>
+              </div>
+            </li>
             <li class="dropdown d-none d-lg-inline-block">
               <a class="nav-link dropdown-toggle arrow-none waves-effect waves-light" data-toggle="fullscreen" href="#">
                 <i class="fe-maximize noti-icon"></i>
@@ -795,6 +926,56 @@
                 complete: function() {
                     $btn.css('pointer-events', 'auto').css('opacity', '1');
                 }
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            if (typeof toastr !== 'undefined') {
+                toastr.options = {
+                    "positionClass": "toast-top-center"
+                };
+            }
+
+            $('#checkCourierBalanceBtn').on('click', function(e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var $amount = $btn.find('.balance-amount');
+                
+                if ($btn.hasClass('revealed')) return;
+
+                $btn.css('pointer-events', 'none');
+                $btn.addClass('loading');
+                
+                $.ajax({
+                    url: "{{ route('admin.courier_balance') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            $amount.text('৳ ' + response.balance);
+                            $btn.removeClass('loading').addClass('revealed');
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success('Balance fetched successfully!', 'Success');
+                            }
+                        } else {
+                            $btn.removeClass('loading');
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message || 'Failed to fetch balance.', 'Error');
+                            }
+                        }
+                    },
+                    error: function() {
+                        $btn.removeClass('loading');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Error connecting to server.', 'Error');
+                        }
+                    },
+                    complete: function() {
+                        $btn.css('pointer-events', 'auto');
+                    }
+                });
             });
         });
     </script>
