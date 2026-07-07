@@ -29,6 +29,8 @@ class CouponController extends Controller
             'amount' => 'required|numeric',
             'expiry_date' => 'required|date',
             'buy_amount' => 'nullable|numeric',
+            'quantity' => 'nullable|integer|min:1',
+            'start_date' => 'nullable|date',
         ]);
 
         $input = $request->all();
@@ -55,6 +57,8 @@ class CouponController extends Controller
             'amount' => 'required|numeric',
             'expiry_date' => 'required|date',
             'buy_amount' => 'nullable|numeric',
+            'quantity' => 'nullable|integer|min:1',
+            'start_date' => 'nullable|date',
         ]);
 
         $update_data = Coupon::findOrFail($request->hidden_id);

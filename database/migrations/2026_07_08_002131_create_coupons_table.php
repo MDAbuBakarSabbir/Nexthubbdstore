@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('discount_type'); // fixed or percentage
             $table->double('amount');
             $table->double('buy_amount')->nullable(); // min order amount
-            $table->integer('qty')->nullable(); // max qty
             $table->date('expiry_date');
             $table->tinyInteger('status')->default(1);
             $table->timestamps();

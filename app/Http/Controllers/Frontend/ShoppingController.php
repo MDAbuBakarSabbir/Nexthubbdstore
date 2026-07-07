@@ -100,23 +100,65 @@ class ShoppingController extends Controller
             'coupon_code' => 'required',
         ]);
 
-        $coupon = \App\Models\Coupon::where('coupon_code', $request->coupon_code)
-            ->where('status', 1)
-            ->where('expiry_date', '>=', date('Y-m-d'))
-            ->first();
+        $coupon = \App\Models\Coupon::where('coupon_code', $request->coupon_code)->first();
 
-        if (! $coupon) {
+        if (! $coupon || $coupon->status != 1) {
             session()->forget('discount');
             session()->forget('coupon_code');
 
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid or expired coupon code.'
+                    'message' => 'Invalid coupon code.'
                 ]);
             }
 
-            Toastr::error('Invalid or expired coupon code.', 'Error!');
+            Toastr::error('Invalid coupon code.', 'Error!');
+            return redirect()->back();
+        }
+
+        if ($coupon->start_date && $coupon->start_date > date('Y-m-d')) {
+            session()->forget('discount');
+            session()->forget('coupon_code');
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This coupon is not active yet.'
+                ]);
+            }
+
+            Toastr::error('This coupon is not active yet.', 'Error!');
+            return redirect()->back();
+        }
+
+        if ($coupon->expiry_date && $coupon->expiry_date < date('Y-m-d')) {
+            session()->forget('discount');
+            session()->forget('coupon_code');
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This coupon has expired.'
+                ]);
+            }
+
+            Toastr::error('This coupon has expired.', 'Error!');
+            return redirect()->back();
+        }
+
+        if ($coupon->quantity !== null && $coupon->quantity <= 0) {
+            session()->forget('discount');
+            session()->forget('coupon_code');
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This coupon usage limit has been reached.'
+                ]);
+            }
+
+            Toastr::error('This coupon usage limit has been reached.', 'Error!');
             return redirect()->back();
         }
 

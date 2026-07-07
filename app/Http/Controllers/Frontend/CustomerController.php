@@ -436,6 +436,14 @@ class CustomerController extends Controller
             $order_details->save();
         }
 
+        // Decrement coupon quantity if used
+        if (Session::has('coupon_code')) {
+            $coupon = \App\Models\Coupon::where('coupon_code', Session::get('coupon_code'))->first();
+            if ($coupon && $coupon->quantity !== null && $coupon->quantity > 0) {
+                $coupon->decrement('quantity');
+            }
+        }
+
         Cart::instance('shopping')->destroy();
         Session::forget('shipping');
         Session::forget('discount');

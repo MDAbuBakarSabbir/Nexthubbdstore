@@ -36,6 +36,8 @@
                                 <th>Discount Type</th>
                                 <th>Discount Amount</th>
                                 <th>Min Purchase</th>
+                                <th>Quantity</th>
+                                <th>Start Date</th>
                                 <th>Expiry Date</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -50,6 +52,8 @@
                                 <td>{{ucfirst($value->discount_type)}}</td>
                                 <td>{{$value->amount}} {{$value->discount_type == 'percentage' ? '%' : '৳'}}</td>
                                 <td>{{$value->buy_amount ?? 'N/A'}} ৳</td>
+                                <td>{{$value->quantity ?? 'Unlimited'}}</td>
+                                <td>{{$value->start_date ? date('d M Y', strtotime($value->start_date)) : 'Immediate'}}</td>
                                 <td>{{date('d M Y', strtotime($value->expiry_date))}}</td>
                                 <td>
                                     @if($value->status==1)

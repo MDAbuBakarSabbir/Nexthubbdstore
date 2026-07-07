@@ -81,6 +81,30 @@
 
                     <div class="col-sm-6">
                         <div class="form-group mb-3">
+                            <label for="quantity" class="form-label">Quantity (Optional)</label>
+                            <input type="number" class="form-control @error('quantity') is-invalid @enderror" name="quantity" value="{{ $edit_data->quantity }}" id="quantity" placeholder="e.g. 100">
+                            @error('quantity')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            <label for="start_date" class="form-label">Start Date (Optional)</label>
+                            <input type="date" class="form-control @error('start_date') is-invalid @enderror" name="start_date" value="{{ $edit_data->start_date }}" id="start_date">
+                            @error('start_date')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
                             <label for="expiry_date" class="form-label">Expiry Date *</label>
                             <input type="date" class="form-control @error('expiry_date') is-invalid @enderror" name="expiry_date" value="{{ $edit_data->expiry_date }}" id="expiry_date" required="">
                             @error('expiry_date')
