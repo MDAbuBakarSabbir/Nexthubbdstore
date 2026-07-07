@@ -38,6 +38,20 @@
               -webkit-transform: translateY(-125%);
               opacity: 0.55
             }
+            
+            /* Toastr mobile centering override */
+            @media (max-width: 768px) {
+                #toast-container {
+                    right: 0 !important;
+                    left: 0 !important;
+                    width: 90% !important;
+                    margin: 12px auto !important;
+                }
+                #toast-container > .toast {
+                    width: 100% !important;
+                    margin-bottom: 8px !important;
+                }
+            }
         </style>
 
         <meta name="facebook-domain-verification" content="38f1w8335btoklo88dyfl63ba3st2e" />
@@ -471,6 +485,13 @@
             feather.replace();
         </script>
         <script src="{{asset('public/backEnd/')}}/assets/js/toastr.min.js"></script>
+        <script>
+            toastr.options = {
+                "positionClass": "toast-top-center",
+                "closeButton": true,
+                "progressBar": true
+            };
+        </script>
         {!! Toastr::message() !!} @stack('script')
         <script>
             $(".quick_view").on("click", function () {
