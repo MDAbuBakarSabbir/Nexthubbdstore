@@ -81,6 +81,7 @@ class ShoppingController extends Controller
     {
         $data = Cart::instance('shopping')->count();
         return view('frontEnd.layouts.ajax.mobilecart_qty', compact('data'));
+    }
     public function applyCoupon(Request $request)
     {
         $request->validate([
