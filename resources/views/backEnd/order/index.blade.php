@@ -504,7 +504,7 @@
                             <small class="text-muted" style="line-height:1.4; display:block;">{{$value->shipping?$value->shipping->address:''}}</small>
                         </td>
                         <td>
-                            <div style="font-weight:700; color:#1e293b; font-size:0.95rem;">{{$value->shipping?$value->shipping->phone:'N/A'}}</div>
+                            <div style="font-weight:700; color:#1e293b; font-size:0.95rem;"><a href="tel:+{{ $value->shipping?$value->shipping->phone:'N/A' }}">{{ $value->shipping?$value->shipping->phone:'N/A' }}</a></div>
                             <button type="button" class="fraud-check-badge fraud-check-btn mt-2"
                                     data-phone="{{ $value->shipping?$value->shipping->phone:'' }}" data-id="{{ $value->id }}">
                                 <i class="fa-solid fa-shield-halved"></i>
