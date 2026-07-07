@@ -404,13 +404,13 @@ class OrderController extends Controller
                     foreach ($cart_items as $item) {
                         $options = (array) ($item->options ?? []);
                         $prod = Product::with('image')->find($item->id);
-                        if (!isset($options['image'])) {
+                        if (! isset($options['image'])) {
                             $options['image'] = ($prod && $prod->image) ? $prod->image->image : 'public/uploads/default.png';
                         }
-                        if (!isset($options['purchase_price'])) {
+                        if (! isset($options['purchase_price'])) {
                             $options['purchase_price'] = $prod ? $prod->purchase_price : 0;
                         }
-                        if (!isset($options['product_discount'])) {
+                        if (! isset($options['product_discount'])) {
                             $options['product_discount'] = 0;
                         }
                         Cart::instance('pos_shopping')->add([
@@ -755,14 +755,9 @@ class OrderController extends Controller
     public function fraudcheck(Request $request)
     {
         $phone = $request->phone;
-        $webConfig = GeneralWebSettings::first()->pluck('value', 'name', 'status')->toArray();
-        $apiKey = $webConfig['fraud_check_api_key'];
+        $apiKey = env('BDCOURIER_API_KEY');
+        $base_url = env('BDCOURIER_API_URL', 'https://api.bdcourier.com/courier-check');
 
-        if ($webConfig['fraud_check_api_url'] == null) {
-            $base_url = 'https://api.bdcourier.com/courier-check';
-        } else {
-            $base_url = $webConfig['fraud_check_api_url'];
-        }
         try {
             $response = Http::timeout(30)->withHeaders([
                 'Authorization' => 'Bearer '.$apiKey,
