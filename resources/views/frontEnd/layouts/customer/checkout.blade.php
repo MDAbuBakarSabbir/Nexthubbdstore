@@ -389,7 +389,7 @@
                 <div class="card checkout-card mt-3">
                     <div class="card-body">
                         <h6 class="mb-3" style="font-weight: 700; color: #1e293b;">কুপন কোড ব্যবহার করুন (Apply Coupon)</h6>
-                        <form action="{{ route('apply.coupon') }}" method="POST" class="d-flex align-items-center">
+                        <form action="{{ route('apply.coupon') }}" method="POST" id="coupon-apply-form" class="d-flex align-items-center">
                             @csrf
                             <input type="text" name="coupon_code" class="form-control form-control-premium me-2" placeholder="কুপন কোড লিখুন" value="{{ session()->get('coupon_code') }}" required style="height: 44px;" />
                             <button type="submit" class="coupon-apply-btn" style="height: 44px;">প্রয়োগ করুন</button>
@@ -424,6 +424,31 @@
             success: function(response) {
                 $(".cartlist").html(response);
             },
+        });
+    });
+
+    $(document).on('submit', '#coupon-apply-form', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var url = form.attr('action');
+        var method = form.attr('method');
+        var data = form.serialize();
+
+        $.ajax({
+            url: url,
+            type: method,
+            data: data,
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    $(".cartlist").html(response.html);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function() {
+                toastr.error('Something went wrong. Please try again.');
+            }
         });
     });
 </script>

@@ -106,10 +106,17 @@ class ShoppingController extends Controller
             ->first();
 
         if (! $coupon) {
-            Toastr::error('Invalid or expired coupon code.', 'Error!');
             session()->forget('discount');
             session()->forget('coupon_code');
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or expired coupon code.'
+                ]);
+            }
+
+            Toastr::error('Invalid or expired coupon code.', 'Error!');
             return redirect()->back();
         }
 
@@ -117,10 +124,17 @@ class ShoppingController extends Controller
         $subtotal = (float) str_replace(',', '', $subtotal);
 
         if ($coupon->buy_amount && $subtotal < $coupon->buy_amount) {
-            Toastr::error('Minimum purchase of ৳'.$coupon->buy_amount.' required for this coupon.', 'Error!');
             session()->forget('discount');
             session()->forget('coupon_code');
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Minimum purchase of ৳' . $coupon->buy_amount . ' required for this coupon.'
+                ]);
+            }
+
+            Toastr::error('Minimum purchase of ৳'.$coupon->buy_amount.' required for this coupon.', 'Error!');
             return redirect()->back();
         }
 
@@ -133,8 +147,17 @@ class ShoppingController extends Controller
         session()->put('discount', $discount);
         session()->put('coupon_code', $coupon->coupon_code);
 
-        Toastr::success('Coupon applied successfully!', 'Success!');
+        if ($request->ajax()) {
+            $data = Cart::instance('shopping')->content();
+            $cartHtml = view('frontEnd.layouts.ajax.cart', compact('data'))->render();
+            return response()->json([
+                'success' => true,
+                'message' => 'Coupon applied successfully!',
+                'html' => $cartHtml
+            ]);
+        }
 
+        Toastr::success('Coupon applied successfully!', 'Success!');
         return redirect()->back();
     }
 }
