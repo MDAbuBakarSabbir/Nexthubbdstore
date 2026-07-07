@@ -1,254 +1,408 @@
-@extends('frontEnd.layouts.master') @section('title', 'Customer Checkout') @push('css')
+@extends('frontEnd.layouts.master')
+@section('title', 'Customer Checkout')
+
+@push('css')
 <link rel="stylesheet" href="{{ asset('public/frontEnd/css/select2.min.css') }}" />
-@endpush @section('content')
+<style>
+    .chheckout-section {
+        background-color: #f4f6f8;
+        padding: 50px 0;
+    }
+    .checkout-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        background: #ffffff;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    .checkout-card .card-header {
+        background-color: #ffffff;
+        border-bottom: 1px solid #f1f3f5;
+        padding: 24px;
+    }
+    .checkout-card .card-header h5 {
+        margin: 0;
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 18px;
+    }
+    .checkout-card .card-body {
+        padding: 24px;
+    }
+    .form-label-premium {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .form-control-premium {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #1e293b;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+    .form-control-premium:focus {
+        border-color: #fe5200;
+        box-shadow: 0 0 0 3px rgba(254, 82, 0, 0.15);
+        outline: none;
+        background: #ffffff;
+    }
+    .payment-card-label {
+        width: 100%;
+        cursor: pointer;
+        display: block;
+    }
+    .payment-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 12px;
+        padding: 16px;
+        background: #ffffff;
+    }
+    .payment-card:hover {
+        border-color: #cbd5e1 !important;
+        transform: translateY(-2px);
+    }
+    .payment-card-label input:checked + .payment-card {
+        border-color: #fe5200 !important;
+        background-color: rgba(254, 82, 0, 0.04);
+        box-shadow: 0 4px 12px rgba(254, 82, 0, 0.08);
+    }
+    .payment-card-label input:checked + .payment-card i {
+        color: #fe5200 !important;
+    }
+    .order-summary-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .order-summary-table th {
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #f1f3f5;
+        padding: 12px 16px;
+        background: #f8fafc;
+    }
+    .order-summary-table td {
+        padding: 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .product-item img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .product-details a {
+        font-weight: 600;
+        color: #1e293b;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .product-details a:hover {
+        color: #fe5200;
+    }
+    .product-meta {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 4px;
+    }
+    .btn-order-confirm {
+        background-color: #fe5200;
+        color: #ffffff;
+        font-weight: 700;
+        padding: 16px;
+        border-radius: 12px;
+        border: none;
+        width: 100%;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px rgba(254, 82, 0, 0.3);
+    }
+    .btn-order-confirm:hover {
+        background-color: #e04800;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(254, 82, 0, 0.4);
+        color: #ffffff;
+    }
+    .coupon-apply-btn {
+        background-color: #1e293b;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 12px 20px;
+        transition: all 0.2s ease;
+    }
+    .coupon-apply-btn:hover {
+        background-color: #0f172a;
+    }
+    .remove-item-btn {
+        background: none;
+        border: none;
+        color: #ef4444;
+        transition: transform 0.2s ease;
+        cursor: pointer;
+    }
+    .remove-item-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .premium-qty {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    .premium-qty button {
+        border: none;
+        background: none;
+        padding: 6px 12px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+    .premium-qty button:hover {
+        background: #f1f3f5;
+    }
+    .premium-qty input {
+        width: 36px;
+        text-align: center;
+        border: none;
+        border-left: 1px solid #cbd5e1;
+        border-right: 1px solid #cbd5e1;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+        outline: none;
+    }
+</style>
+@endpush
+
+@section('content')
 <section class="chheckout-section">
     @php
         $subtotal = Cart::instance('shopping')->subtotal();
         $subtotal = str_replace(',', '', $subtotal);
         $subtotal = str_replace('.00', '', $subtotal);
         $shipping = Session::get('shipping') ? Session::get('shipping') : 0;
+        $discount = Session::get('discount') ? Session::get('discount') : 0;
     @endphp
     <div class="container">
         <div class="row">
-            <div class="col-sm-5 cus-order-2">
-                <div class="checkout-shipping">
-                    <form action="{{ route('customer.ordersave') }}" method="POST" data-parsley-validate="">
-                        @csrf
-                        <div class="card">
-                           <div class="card-header">
-                                <h6>আপনার অর্ডারটি কনফার্ম করতে তথ্যগুলো পূরণ করে <span style="color:#fe5200;">"অর্ডার করুন"</span> বাটন এ ক্লিক করুন অথবা ফোনে অর্ডার করতে এই নাম্বার <a href="tel:88{{$contact->hotline}}" style="color:#fe5200;">{{$contact->hotline}}</a> এর উপরে ক্লিক করুন।   </h6>
-                                
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <div class="form-group mb-3">
-                                            <label for="name">আপনার নাম লিখুন *</label>
-                                            <input type="text" id="name"
-                                                class="form-control @error('name') is-invalid @enderror" name="name"
-                                                value="{{ old('name') }}"
-                                                required/>
-                                            @error('name')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <!-- col-end -->
-                                    <div class="col-sm-12">
-                                        <div class="form-group mb-3">
-                                            <label for="phone">আপনার নাম্বার লিখুন *</label>
-                                            <input type="text" minlength="11" id="phone" maxlength="11"
-                                                pattern="0[0-9]+"
-                                                title="Please enter an 11-digit number."
-                                                class="form-control @error('phone') is-invalid @enderror" name="phone"
-                                                value="{{ old('phone') }}"
-                                                required/>
-                                            @error('phone')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <!-- col-end -->
-                                    <div class="col-sm-12">
-                                        <div class="form-group mb-3">
-                                            <label for="address">ঠিকানা লিখুন * জেলা,উপজেলা,থানা,পৌরসভা</label>
-                                            <input type="address" id="address"
-                                                class="form-control @error('address') is-invalid @enderror"
-                                                name="address"
-                                                value="{{ old('address') }}"
-                                                required/>
-                                            @error('email')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="form-group mb-3">
-                                            <label for="area">ডেলিভারি এরিয়া নিবার্চন করুন *</label>
-                                            <select type="area" id="area"
-                                                class="form-control @error('area') is-invalid @enderror" name="area"
-                                                required>
-                                                @foreach ($shippingcharge as $key => $value)
-                                                    <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            @error('email')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <!-- col-end -->
+            <!-- Left Column: Shipping Form -->
+            <div class="col-lg-7 col-md-12 mb-4">
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5>আপনার শিপিং ও ডেলিভারি তথ্য</h5>
+                        <p class="text-muted mt-2 mb-0" style="font-size: 12px; line-height: 1.5;">
+                            অর্ডারটি কনফার্ম করতে নিচের তথ্যগুলো পূরণ করুন অথবা ফোনে অর্ডার করতে 
+                            <a href="tel:88{{$contact->hotline}}" class="text-danger font-weight-bold">{{$contact->hotline}}</a> নাম্বারে ক্লিক করুন।
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('customer.ordersave') }}" method="POST" id="checkout-form" data-parsley-validate="">
+                            @csrf
+                            <div class="row">
+                                <div class="col-sm-12 mb-3">
+                                    <label for="name" class="form-label-premium">আপনার নাম লিখুন *</label>
+                                    <input type="text" id="name" name="name" class="form-control form-control-premium @error('name') is-invalid @enderror" value="{{ old('name') }}" required placeholder="e.g. আবির রহমান" />
+                                    @error('name')
+                                        <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
+                                <div class="col-sm-12 mb-3">
+                                    <label for="phone" class="form-label-premium">আপনার মোবাইল নাম্বার লিখুন *</label>
+                                    <input type="text" minlength="11" id="phone" name="phone" maxlength="11" pattern="0[0-9]+" title="Please enter an 11-digit number." class="form-control form-control-premium @error('phone') is-invalid @enderror" value="{{ old('phone') }}" required placeholder="e.g. 017xxxxxxxx" />
+                                    @error('phone')
+                                        <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
+                                <div class="col-sm-12 mb-3">
+                                    <label for="address" class="form-label-premium">ঠিকানা লিখুন (জেলা, উপজেলা, গ্রাম, রোড নম্বর) *</label>
+                                    <input type="text" id="address" name="address" class="form-control form-control-premium @error('address') is-invalid @enderror" value="{{ old('address') }}" required placeholder="e.g. ঢাকা, মিরপুর ১০" />
+                                    @error('address')
+                                        <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
+                                <div class="col-sm-12 mb-4">
+                                    <label for="area" class="form-label-premium">ডেলিভারি এরিয়া নির্বাচন করুন *</label>
+                                    <select id="area" name="area" class="form-control form-control-premium select2 @error('area') is-invalid @enderror" required>
+                                        @foreach ($shippingcharge as $key => $value)
+                                            <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('area')
+                                        <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
 
-                                    <!-------------------->
-                                    <!-- col-end -->
-                                    <div class="col-sm-12">
+                                <!-- Note field -->
+                                <div class="col-sm-12 mb-4">
+                                    <label for="note" class="form-label-premium">অর্ডারের জন্য বিশেষ কোনো নির্দেশিকা (ঐচ্ছিক)</label>
+                                    <textarea id="note" name="note" class="form-control form-control-premium" rows="2" placeholder="e.g. দ্রুত ডেলিভারি দিলে ভালো হয়..."></textarea>
+                                </div>
 
-                                        <div class="radio_payment">
-                                            <label id="payment_method">পেমেন্ট মেথড</label>
-                                            <div class="payment_option">
-                                                
-                                            </div>
+                                <!-- Payment Gateway Selection -->
+                                <div class="col-sm-12 mb-4">
+                                    <label class="form-label-premium">পেমেন্ট মেথড নির্বাচন করুন *</label>
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="payment-card-label" for="payment_cod">
+                                                <input class="form-check-input d-none" type="radio" name="payment_method" id="payment_cod" value="Cash On Delivery" checked required />
+                                                <div class="payment-card text-center">
+                                                    <i class="fa-solid fa-hand-holding-dollar fa-2x mb-2 text-secondary"></i>
+                                                    <div class="font-weight-semibold font-13">ক্যাশ অন ডেলিভারি</div>
+                                                </div>
+                                            </label>
                                         </div>
-                                        <div class="payment-methods">
-                                            
-                                            <div class="form-check p_cash">
-                                                <input class="form-check-input" type="radio" name="payment_method"
-                                                id="inlineRadio1" value="Cash On Delivery" checked required />
-                                                <label class="form-check-label" for="inlineRadio1">
-                                                    Cash On Delivery
-                                                </label>
-                                            </div>
-                                            @if($bkash_gateway)
-                                            <div class="form-check p_bkash">
-                                                <input class="form-check-input" type="radio" name="payment_method"
-                                                id="inlineRadio2" value="bkash" required/>
-                                                <label class="form-check-label" for="inlineRadio2">
-                                                    Bkash
-                                                </label>
-                                            </div>
-                                            @endif
-                                            
-                                            @if($shurjopay_gateway)
-                                            <div class="form-check p_shurjo">
-                                                <input class="form-check-input" type="radio" name="payment_method"
-                                                id="inlineRadio3" value="shurjopay" required/>
-                                                <label class="form-check-label" for="inlineRadio3">
-                                                    Shurjopay
-                                               </label>
-                                            </div>
-                                            @endif
+                                        @if($bkash_gateway)
+                                        <div class="col-4">
+                                            <label class="payment-card-label" for="payment_bkash">
+                                                <input class="form-check-input d-none" type="radio" name="payment_method" id="payment_bkash" value="bkash" required />
+                                                <div class="payment-card text-center">
+                                                    <i class="fa-solid fa-wallet fa-2x mb-2 text-danger"></i>
+                                                    <div class="font-weight-semibold font-13">বিকাশ (bKash)</div>
+                                                </div>
+                                            </label>
                                         </div>
-                                    </div>
-
-                                    <!-------------------->
-                                    <div class="col-sm-12">
-                                        <div class="form-group">
-                                            <button class="order_place" type="submit">অর্ডার করুন</button>
+                                        @endif
+                                        @if($shurjopay_gateway)
+                                        <div class="col-4">
+                                            <label class="payment-card-label" for="payment_online">
+                                                <input class="form-check-input d-none" type="radio" name="payment_method" id="payment_online" value="shurjopay" required />
+                                                <div class="payment-card text-center">
+                                                    <i class="fa-solid fa-credit-card fa-2x mb-2 text-success"></i>
+                                                    <div class="font-weight-semibold font-13">অনলাইন পেমেন্ট</div>
+                                                </div>
+                                            </label>
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
+
+                                <div class="col-sm-12">
+                                    <button class="btn-order-confirm" type="submit">
+                                        <i class="fa-solid fa-circle-check me-2"></i> অর্ডারটি কনফার্ম করুন
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <!-- card end -->
-
-
-
-
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
-            <!-- col end -->
-            <div class="col-sm-7 cust-order-1">
-                <div class="cart_details table-responsive-sm">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>অর্ডারের তথ্য</h5>
-                        </div>
-                        <div class="card-body cartlist">
-                            <table class="cart_table table table-bordered table-striped text-center mb-0">
+
+            <!-- Right Column: Order Details & Coupon -->
+            <div class="col-lg-5 col-md-12">
+                <!-- Order Summary Card -->
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5>অর্ডারের বিবরণ</h5>
+                    </div>
+                    <div class="card-body p-0 cartlist">
+                        <!-- Ajax loaded table contents (including footers) -->
+                        <div class="table-responsive">
+                            <table class="order-summary-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 20%;">ডিলিট</th>
-                                        <th style="width: 40%;">প্রোডাক্ট</th>
-                                        <th style="width: 20%;">পরিমাণ</th>
-                                        <th style="width: 20%;">মূল্য</th>
+                                        <th style="width: 50%;">প্রোডাক্ট</th>
+                                        <th style="width: 25%; text-align: center;">পরিমাণ</th>
+                                        <th style="width: 25%; text-align: right;">মূল্য</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
                                     @foreach (Cart::instance('shopping')->content() as $value)
                                         <tr>
                                             <td>
-                                                <a class="cart_remove" data-id="{{ $value->rowId }}"><i
-                                                        class="fas fa-trash text-danger"></i></a>
-                                            </td>
-                                            <td class="text-left">
-                                                <a href="{{ route('product', $value->options->slug) }}"> <img
-                                                        src="{{ asset($value->options->image) }}" />
-                                                    {{ Str::limit($value->name, 20) }}</a>
-                                                @if ($value->options->product_size)
-                                                    <p>Size: {{ $value->options->product_size }}</p>
-                                                @endif
-                                                @if ($value->options->product_color)
-                                                    <p>Color: {{ $value->options->product_color }}</p>
-                                                @endif
-                                            </td>
-                                            <td class="cart_qty">
-                                                <div class="qty-cart vcart-qty">
-                                                    <div class="quantity">
-                                                        <button class="minus cart_decrement"
-                                                            data-id="{{ $value->rowId }}">-</button>
-                                                        <input type="text" value="{{ $value->qty }}" readonly />
-                                                        <button class="plus cart_increment"
-                                                            data-id="{{ $value->rowId }}">+</button>
+                                                <div class="product-item">
+                                                    <img src="{{ asset($value->options->image) }}" alt="{{ $value->name }}" />
+                                                    <div class="product-details">
+                                                        <a href="{{ route('product', $value->options->slug) }}">{{ Str::limit($value->name, 25) }}</a>
+                                                        @if ($value->options->product_size || $value->options->product_color)
+                                                            <div class="product-meta">
+                                                                @if ($value->options->product_size) Size: {{ $value->options->product_size }} @endif
+                                                                @if ($value->options->product_color) Color: {{ $value->options->product_color }} @endif
+                                                            </div>
+                                                        @endif
+                                                        <button type="button" class="remove-item-btn cart_remove mt-1 font-12" data-id="{{ $value->rowId }}" style="padding:0; font-size: 11px;">
+                                                            <i class="fas fa-trash text-danger me-1"></i> বাদ দিন
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td><span class="alinur">৳ </span><strong>{{ $value->price }}</strong>
+                                            <td style="text-align: center;">
+                                                <div class="premium-qty">
+                                                    <button type="button" class="minus cart_decrement" data-id="{{ $value->rowId }}">-</button>
+                                                    <input type="text" value="{{ $value->qty }}" readonly />
+                                                    <button type="button" class="plus cart_increment" data-id="{{ $value->rowId }}">+</button>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: right; font-weight: 700; color: #1e293b;">
+                                                ৳{{ $value->price * $value->qty }}
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                                 <tfoot>
-                                    <tr>
-                                        <th colspan="3" class="text-end px-4">মোট</th>
-                                        <td class="px-4">
-                                            <span id="net_total"><span class="alinur">৳
-                                                </span><strong>{{ $subtotal }}</strong></span>
-                                        </td>
+                                    <tr style="border-top: 2px solid #e2e8f0;">
+                                        <td colspan="2" class="text-end font-weight-semibold" style="padding: 12px 16px;">মোট:</td>
+                                        <td style="text-align: right; font-weight: 700; padding: 12px 16px;">৳{{ $subtotal }}</td>
                                     </tr>
                                     <tr>
-                                        <th colspan="3" class="text-end px-4">ডেলিভারি চার্জ</th>
-                                        <td class="px-4">
-                                            <span id="cart_shipping_cost"><span class="alinur">৳
-                                                </span><strong>{{ $shipping }}</strong></span>
-                                        </td>
+                                        <td colspan="2" class="text-end font-weight-semibold" style="padding: 12px 16px;">ডেলিভারি চার্জ:</td>
+                                        <td style="text-align: right; font-weight: 700; padding: 12px 16px;">৳{{ $shipping }}</td>
                                     </tr>
-                                    @php
-                                        $discount = Session::get('discount') ? Session::get('discount') : 0;
-                                    @endphp
                                     @if($discount > 0)
-                                    <tr>
-                                        <th colspan="3" class="text-end px-4">ডিসকাউন্ট</th>
-                                        <td class="px-4">
-                                            <span><span class="alinur">৳
-                                                </span><strong>{{ $discount }}</strong></span>
-                                        </td>
+                                    <tr class="text-success">
+                                        <td colspan="2" class="text-end font-weight-bold" style="padding: 12px 16px;">ডিসকাউন্ট:</td>
+                                        <td style="text-align: right; font-weight: 700; padding: 12px 16px;">- ৳{{ $discount }}</td>
                                     </tr>
                                     @endif
-                                    <tr>
-                                        <th colspan="3" class="text-end px-4">সর্বমোট</th>
-                                        <td class="px-4">
-                                            <span id="grand_total"><span class="alinur">৳
-                                                </span><strong>{{ ($subtotal + $shipping) - $discount }}</strong></span>
-                                        </td>
+                                    <tr style="border-top: 1px solid #e2e8f0; font-size: 16px;">
+                                        <td colspan="2" class="text-end font-weight-bold text-dark" style="padding: 16px;">সর্বমোট:</td>
+                                        <td style="text-align: right; font-weight: 800; color: #fe5200; padding: 16px;">৳{{ ($subtotal + $shipping) - $discount }}</td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
-                        <div class="card-footer bg-white">
-                            <form action="{{ route('apply.coupon') }}" method="POST" class="d-flex align-items-center justify-content-between">
-                                @csrf
-                                <input type="text" name="coupon_code" class="form-control me-2" placeholder="কুপন কোড লিখুন (Coupon Code)" value="{{ session()->get('coupon_code') }}" required style="max-width: 70%;" />
-                                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">কুপন কোড দিন</button>
-                            </form>
-                        </div>
+                    </div>
+                </div>
+
+                <!-- Separate Coupon Card (Fixes nested form bug) -->
+                <div class="card checkout-card mt-3">
+                    <div class="card-body">
+                        <h6 class="mb-3" style="font-weight: 700; color: #1e293b;">কুপন কোড ব্যবহার করুন (Apply Coupon)</h6>
+                        <form action="{{ route('apply.coupon') }}" method="POST" class="d-flex align-items-center">
+                            @csrf
+                            <input type="text" name="coupon_code" class="form-control form-control-premium me-2" placeholder="কুপন কোড লিখুন" value="{{ session()->get('coupon_code') }}" required style="height: 44px;" />
+                            <button type="submit" class="coupon-apply-btn" style="height: 44px;">প্রয়োগ করুন</button>
+                        </form>
                     </div>
                 </div>
             </div>
-            <!-- col end -->
         </div>
     </div>
 </section>
-@endsection @push('script')
+@endsection
+
+@push('script')
 <script src="{{ asset('public/frontEnd/') }}/js/parsley.min.js"></script>
 <script src="{{ asset('public/frontEnd/') }}/js/form-validation.init.js"></script>
 <script src="{{ asset('public/frontEnd/') }}/js/select2.min.js"></script>
@@ -316,62 +470,12 @@
         }
     });
 </script>
-{{-- <script>
-    $(document).ready(function() {
-        // Setup CSRF token for AJAX
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-
-        var timer = null;
-
-        $(document).on('input keyup change blur', '#name, #phone, #address, #area', function(event) {
-            if (timer) {
-                clearTimeout(timer);
-            }
-
-            var delay = (event.type === 'blur') ? 0 : 2000;
-
-            timer = setTimeout(function() {
-                saveIncompleteOrder();
-            }, delay);
-        });
-
-        function saveIncompleteOrder() {
-            var name = $('#name').val().trim();
-            var phone = $('#phone').val().trim();0000
-            var address = $('#address').val().trim();
-            var area = $('#area option:selected').text().trim();
-
-            // Do not save if name and phone are empty, or if phone is less than 11 digits
-            if (name === "" && phone === "") return;
-            if (phone.length < 11) return;
-
-            $.ajax({
-                url: "{{ route('customer.incomplete_order_save') }}",
-                type: "POST",
-                data: {
-                    name: name,
-                    phone: phone,
-                    address: address,
-                    area: area
-                },
-                success: function(response) {
-                    console.log("Incomplete order saved");
-                }
-            });
-        }
-    });
-</script> --}}
 
 <script>
     $(document).ready(function() {
         // Setup CSRF token for AJAX
         $.ajaxSetup({
             headers: {
-                // যদি আপনার লেআউটে মেটা ট্যাগ না থাকে, তবে সরাসরি ব্লেড ফাংশন ব্যবহারের ব্যাকআপ ট্রিক
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}'
             }
         });
@@ -392,40 +496,37 @@
 
         function saveIncompleteOrder() {
             var name = $('#name').val().trim();
-            var phone = $('#phone').val().trim(); // টাইপো '0000' রিমুভ করা হয়েছে
+            var phone = $('#phone').val().trim();
             var address = $('#address').val().trim();
             
-            // এরিয়া সিলেক্ট করা থাকলে টেক্সট নিবে, নতুবা খালি রাখবে
             var areaSelect = $('#area option:selected');
             var area = "";
             if(areaSelect.val() !== "" && areaSelect.text().indexOf('নিবার্চন') === -1) {
                 area = areaSelect.text().trim();
             }
 
-            // ফোন নাম্বার বা নাম খালি থাকলে অথবা ফোন নাম্বার ১১ ডিজিটের কম হলে ডাটা পাঠাবে না
             if (name === "" && phone === "") return;
             if (phone.length > 0 && phone.length < 11) return; 
 
             $.ajax({
-    url: "{{ route('customer.incomplete_order_save') }}",
-    type: "POST",
-    headers: {
-        'Accept': 'application/json' // Laravel-কে বাধ্য করবে HTML এর বদলে JSON বা এরর রেসপন্স দিতে
-    },
-    data: {
-        name: name,
-        phone: phone,
-        address: address,
-        area: area
-    },
-    success: function(response) {
-        console.log("Incomplete order saved:", response);
-    },
-    error: function(xhr) {
-        // যদি এখনও কোনো ভ্যালিডেশন বা অথেন্টিকেশন এরর থাকে, তা এখানে দেখাবে (HTML দেখাবে না)
-        console.error("Error saving incomplete order:", xhr.responseJSON);
-    }
-});
+                url: "{{ route('customer.incomplete_order_save') }}",
+                type: "POST",
+                headers: {
+                    'Accept': 'application/json'
+                },
+                data: {
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    area: area
+                },
+                success: function(response) {
+                    console.log("Incomplete order saved:", response);
+                },
+                error: function(xhr) {
+                    console.error("Error saving incomplete order:", xhr.responseJSON);
+                }
+            });
         }
     });
 </script>
